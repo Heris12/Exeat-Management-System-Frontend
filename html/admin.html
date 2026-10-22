@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <title>School Exeat System || Admin</title>
+    <link rel="shortcut icon" href="eui logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="/client/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css">
+</head>
+<body style="visibility: hidden">
+    <div class="dashboard">
+        <!-- Hamburger Icon -->
+        <button class="menu-icon" id="menu-icon" aria-label="Open navigation menu" aria-expanded="false" aria-controls="sidebar">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <aside class="sidebar" id="sidebar">
+             <!-- Navigation Links -->
+            <button class="close-icon" id="close-icon" aria-label="Close navigation menu">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="logo">
+                <img src="eui logo.png" alt="Edo State University logo">
+            </div>
+
+            <h2>Admin Panel</h2>
+            <a href="admin.html" class="active"><i class="fa-solid fa-shield" aria-hidden="true"></i>Dashboard</a>
+            <a href="admin-create-user.html"><i class="fa-solid fa-user-plus" aria-hidden="true"></i>Create User</a>
+            <a href="#requests"><i class="fa fa-file-text"></i> Requests</a>
+            <a href="#students"><i class="fa fa-users"></i> Students</a>
+            <a href="index.html" class="logout" id="logoutBtn">Logout  <i class="fa-solid fa-right-from-bracket"></i></i></a>
+        </aside>
+
+        <main class="main-content">
+            <div class="top-bar">
+                <div>
+                    <h1>Admin Dashboard</h1>
+                    <p>Manage student exeat requests and monitor the system.</p>
+                </div>
+                <div class="admin-badge">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span id="adminName">Admin</span>
+                </div>
+            </div>
+
+            <section class="stats admin-stat">
+                <div class="stat-card">
+                    <i class="fa-solid fa-users"></i>
+                    <h3 id="studentsCount">0</h3>
+                    <p>Total Students</p>
+                </div>
+
+                <div class="stat-card">
+                    <i class="fa-solid fa-file-circle-question"></i>
+                    <h3 id="totalCount">0</h3>
+                    <p>Total Requests</p>
+                </div>
+
+                <div class="stat-card">
+                    <i class="fa-solid fa-clock"></i>
+                    <h3 id="pendingCount">0</h3>
+                    <p>Pending Requests</p>
+                </div>
+
+                <div class="stat-card">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <h3 id="approvedCount">0</h3>
+                    <p>Approved Requests</p>
+                </div>
+
+                <div class="stat-card  admin-stat-card">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                    <h3 id="rejectedCount">0</h3>
+                    <p>Rejected Requests</p>
+                </div>
+            </section>
+
+            <section class="panel" id="requests">
+                <div class="panel-header">
+                    <h2>All Exeat Requests</h2>
+                    <div class="controls admin-request-controls">
+                        <input class="admin-search-input" type="search" id="searchInput"
+                            placeholder="Search student or destination" aria-label="Search exeat requests">
+                        <div class="custom-select admin-status-select" id="statusFilterSelect">
+                            <select id="statusFilter" hidden aria-hidden="true" tabindex="-1">
+                                <option value="All">All Status</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                            <button class="custom-select-trigger" id="statusFilterTrigger" type="button"
+                                aria-haspopup="listbox" aria-expanded="false" aria-controls="statusFilterOptions"
+                                aria-label="Filter requests by status">
+                                <span id="statusFilterValue">All Status</span>
+                                <span class="custom-select-caret" aria-hidden="true"></span>
+                            </button>
+                            <div class="custom-select-options" id="statusFilterOptions" role="listbox"
+                                aria-label="Request status" hidden>
+                                <div class="custom-select-option" role="option" tabindex="-1"
+                                    data-value="All" aria-selected="true">All Status</div>
+                                <div class="custom-select-option" role="option" tabindex="-1"
+                                    data-value="Pending" aria-selected="false">Pending</div>
+                                <div class="custom-select-option" role="option" tabindex="-1"
+                                    data-value="Approved" aria-selected="false">Approved</div>
+                                <div class="custom-select-option" role="option" tabindex="-1"
+                                    data-value="Rejected" aria-selected="false">Rejected</div>
+                            </div>
+                        </div>
+                        <button type="button" id="clearExeatsBtn" class="btn reject admin-delete-button">
+                            <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                            <span>Delete All Requests</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Matric No.</th>
+                                <th>Type</th>
+                                <th>Destination</th>
+                                <th>Departure</th>
+                                <th>Return</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="requestsTable">
+                        <tr>
+                            <td colspan="9" class="loading">Loading requests...</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="panel" id="students">
+                <div class="panel-header">
+                    <h2>Registered Students</h2>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Full Name</th>
+                                <th>Matric Number</th>
+                                <th>Department</th>
+                                <th>Email</th>
+                                <th>Registered</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTable">
+                            <tr>
+                                <td colspan="5" class="loading">Loading students...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal" id="reviewModal">
+        <div class="modal-card">
+            <h2 id="modalTitle">Review Exeat Request</h2>
+
+            <p id="modalDescription" style="margin-bottom:12px;color:#6b7280;"></p>
+
+            <label for="adminComment">Admin Comment</label>
+            <textarea id="adminComment" placeholder="Enter a comment..."></textarea>
+
+            <div class="modal-actions">
+                <button class="btn cancel" id="cancelModal">Cancel</button>
+                <button class="btn approve" id="confirmReview">Confirm</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="deleteConfirmModal">
+        <div class="modal-card delete-confirm-card" role="alertdialog"
+            aria-labelledby="deleteConfirmTitle" aria-describedby="deleteConfirmDescription">
+            <h2 id="deleteConfirmTitle">Delete all exeat requests?</h2>
+            <p id="deleteConfirmDescription"></p>
+            <div class="modal-actions">
+                <button class="btn cancel" id="cancelDelete">Cancel</button>
+                <button class="btn reject" id="confirmDelete">Delete All</button>
+            </div>
+        </div>
+    </div>
+    <div class="toast" id="toast"></div>
+    <script type="module" src="/client/javascript/admin.js?v=20261022-1"></script>
+</body>
+</html>

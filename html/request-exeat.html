@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Exeat System || Request-Exeat</title>
+    <link rel="shortcut icon" href="eui logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="/client/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Hamburger Icon -->
+        <button class="menu-icon" id="menu-icon" aria-label="Open navigation menu" aria-expanded="false" aria-controls="sidebar">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <aside class="sidebar" id="sidebar">
+             <!-- Navigation Links -->
+            <button class="close-icon" id="close-icon" aria-label="Close navigation menu">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="logo">
+                <img src="eui logo.png" alt="Edo State University logo">
+            </div>
+            <h2>Exeat System</h2>
+            <a href="dashboard.html" class="active"><i class="fa-solid fa-shield" aria-hidden="true"></i> Dashboard</a>
+            <a href="request-exeat.html"><i class="fa fa-file-text" aria-hidden="true"></i> Request Exeat</a>
+            <a href="requests.html"><i class="fa fa-history" aria-hidden="true"></i> My Requests</a>
+            <a href="index.html" class="logout" id="logoutBtn">Logout  <i class="fa-solid fa-right-from-bracket"></i></i></a>
+        </aside>
+
+        <main class="main-content">
+            <h2 class="res">Request Exeat</h2>
+            <div class="form-container">
+                <form id="exeatForm">
+                    <div class="custom-select" id="exeatTypeSelect">
+                        <span class="custom-select-label" id="exeatTypeLabel">Exeat Type</span>
+                        <select id="exeatType" hidden aria-hidden="true" tabindex="-1">
+                            <option value="">Select Exeat Type</option>
+                            <option value="day">Day Exeat</option>
+                            <option value="weekend">Weekend Exeat</option>
+                            <option value="long">Emergency Exeat</option>
+                        </select>
+                        <button class="custom-select-trigger" id="exeatTypeTrigger" type="button"
+                            aria-haspopup="listbox" aria-expanded="false" aria-required="true"
+                            aria-controls="exeatTypeOptions"
+                            aria-labelledby="exeatTypeLabel exeatTypeValue">
+                            <span id="exeatTypeValue">Select Exeat Type</span>
+                            <span class="custom-select-caret" aria-hidden="true"></span>
+                        </button>
+                        <div class="custom-select-options" id="exeatTypeOptions" role="listbox"
+                            aria-labelledby="exeatTypeLabel" hidden>
+                            <div class="custom-select-option" role="option" tabindex="-1"
+                                data-value="day" aria-selected="false">Day Exeat</div>
+                            <div class="custom-select-option" role="option" tabindex="-1"
+                                data-value="weekend" aria-selected="false">Weekend Exeat</div>
+                            <div class="custom-select-option" role="option" tabindex="-1"
+                                data-value="long" aria-selected="false">Emergency Exeat</div>
+                        </div>
+                    </div>
+                    <label for="destination">Destination</label>
+                    <input type="text" id="destination" placeholder="Where are you going to?" required>
+
+                    <div class="date-fields">
+                        <div>
+                            <label for="departureDate">Departure Date</label>
+                            <input type="date" id="departureDate" required>
+                        </div>
+                        <div>
+                            <label for="returnDate">Return Date</label>
+                            <input type="date" id="returnDate" required>
+                        </div>
+                    </div>
+
+                    <label for="reason">Reason</label>
+                    <textarea id="reason" placeholder="Enter your reason for exeat" required></textarea>
+                    <button type="submit">Submit Request</button>
+                </form>
+            </div>
+        </main>
+    </div>
+    
+    <script type="module" src="/client/javascript/scripts.js?v=20261016-2"></script>
+</body>
+</html>

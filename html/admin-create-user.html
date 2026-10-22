@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <title>School Exeat System || Create User</title>
+    <link rel="shortcut icon" href="eui logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="/client/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css">
+</head>
+<body style="visibility: hidden">
+    <div class="dashboard">
+        <button class="menu-icon" id="menu-icon" aria-label="Open navigation menu" aria-expanded="false" aria-controls="sidebar">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <aside class="sidebar" id="sidebar">
+            <button class="close-icon" id="close-icon" aria-label="Close navigation menu">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="logo">
+                <img src="eui logo.png" alt="Edo State University logo">
+            </div>
+            <h2>Admin Panel</h2>
+            <a href="admin.html"><i class="fa-solid fa-shield" aria-hidden="true"></i>Dashboard</a>
+            <a href="admin-create-user.html" class="active"><i class="fa-solid fa-user-plus" aria-hidden="true"></i>Create User</a>
+            <a href="admin.html#students"><i class="fa fa-users" aria-hidden="true"></i>Students</a>
+            <a href="index.html" class="logout" id="logoutBtn">Logout <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i></a>
+        </aside>
+
+        <main class="main-content">
+            <div class="top-bar">
+                <div>
+                    <h1>Create User</h1>
+                    <p>Create a student or admin account.</p>
+                </div>
+                <div class="admin-badge">
+                    <i class="fa-solid fa-user-shield" aria-hidden="true"></i>
+                    <span id="adminName">Admin</span>
+                </div>
+            </div>
+
+            <section class="panel">
+                <div class="panel-header">
+                    <h2>New Account Details</h2>
+                </div>
+                <div class="form-container">
+                    <form id="createUserForm">
+                        <div class="custom-select" id="roleSelect">
+                            <span class="custom-select-label" id="roleLabel">Account type</span>
+                            <select id="role" name="role" required hidden aria-hidden="true" tabindex="-1">
+                                <option value="student">Student</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                            <button class="custom-select-trigger" id="roleTrigger" type="button"
+                                aria-haspopup="listbox" aria-expanded="false" aria-controls="roleOptions"
+                                aria-labelledby="roleLabel roleValue">
+                                <span id="roleValue">Student</span>
+                                <span class="custom-select-caret" aria-hidden="true"></span>
+                            </button>
+                            <div class="custom-select-options" id="roleOptions" role="listbox"
+                                aria-labelledby="roleLabel" hidden>
+                                <div class="custom-select-option" id="roleOptionStudent" role="option"
+                                    tabindex="-1" data-value="student" aria-selected="true">Student</div>
+                                <div class="custom-select-option" id="roleOptionAdmin" role="option"
+                                    tabindex="-1" data-value="admin" aria-selected="false">Admin</div>
+                            </div>
+                        </div>
+
+                        <label for="fullName">Full name</label>
+                        <input type="text" id="fullName" name="fullName" autocomplete="name" required>
+
+                        <div id="studentFields">
+                            <label for="matriculationNumber">Matriculation number</label>
+                            <input type="text" id="matriculationNumber" name="matriculationNumber" required>
+                            <label for="department">Department</label>
+                            <input type="text" id="department" name="department" required>
+                        </div>
+
+                        <label for="email">Email address</label>
+                        <input type="email" id="email" name="email" autocomplete="email" required>
+                        <label for="password">Temporary password</label>
+                        <input type="password" id="password" name="password" minlength="6" autocomplete="new-password" required>
+                        <button type="submit" id="createUserButton">Create Account</button>
+                    </form>
+                    <p id="formMessage" role="status" aria-live="polite"></p>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script type="module" src="/client/javascript/admin-create-user.js?v=20261021-1"></script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Exeat System |•| Dashboard</title>
+    <link rel="shortcut icon" href="eui logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="/client/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Hamburger Icon -->
+        <button class="menu-icon" id="menu-icon" aria-label="Open navigation menu" aria-expanded="false" aria-controls="sidebar">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <aside class="sidebar" id="sidebar">
+             <!-- Navigation Links -->
+            <button class="close-icon" id="close-icon" aria-label="Close navigation menu">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="logo">
+                <img src="eui logo.png" alt="Edo State University logo">
+            </div>
+            <h2>Exeat System</h2>
+            <a href="dashboard.html" class="active"><i class="fa-solid fa-shield" aria-hidden="true"></i> Dashboard</a>
+            <a href="request-exeat.html"><i class="fa fa-file-text" aria-hidden="true"></i> Request Exeat</a>
+            <a href="requests.html"><i class="fa fa-history" aria-hidden="true"></i> My Requests</a>
+            <a href="index.html" class="logout" id="logoutBtn">Logout  <i class="fa-solid fa-right-from-bracket"></i></i></a>
+        </aside>
+
+        <main class="main-content">
+            <div class="top-bar">
+                <div>
+                    <h1>Hello <span id="studentName">Student</span> </h1>
+                    <p>Manage your exeat requests from dashboard.</p>
+                </div>
+            </div>
+
+            <section class="stats">
+                <div class="stat-card">
+                    <i class="fa-solid fa-clock"></i>
+                    <h3 id="pendingCount">0</h3>
+                    <p>Pending Requests</p>
+                </div>
+
+                <div class="stat-card">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <h3 id="approvedCount">0</h3>
+                    <p>Approved Requests</p>
+                </div>
+
+                <div class="stat-card">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                    <h3 id="rejectedCount">0</h3>
+                    <p>Rejected Requests</p>
+                </div>
+            </section>
+
+            <div class="dashboard-action">
+                <a href="request-exeat.html">+ Request New Exeat</a>
+            </div>
+
+            <div class="recent-requests">
+                <h2>Recent Exeat Requests</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Exeat Type</th>
+                            <th>Destination</th>
+                            <th>Departure</th>
+                            <th>Return</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentRequests"></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+    <script type="module" src="/client/javascript/scripts.js?v=20261016-2"></script>
+</body>
+</html>

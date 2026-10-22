@@ -1,0 +1,663 @@
+import { request } from "./api.js";
+import { Auth } from "./auth.js";
+
+// Admin dashboard script
+document.addEventListener("DOMContentLoaded", function () {
+    verifyAdminAccess();
+});
+
+async function verifyAdminAccess() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        redirectToLogin();
+        return;
+    }
+
+    try {
+        const response = await request("/auth/me");
+        const user = response.user;
+        if (!user || user.role !== "admin") {
+            redirectToLogin();
+            return;
+        }
+
+        localStorage.setItem("currentUser", JSON.stringify(user));
+        document.body.style.visibility = "visible";
+        setupSidebar();
+        setupAdminDashboard(user);
+    } catch (error) {
+        console.error("Could not verify administrator access:", error);
+        redirectToLogin();
+    }
+}
+
+function setupResponsiveStatusFilter(select) {
+    if (!select) return;
+
+    const wrapper = document.getElementById("statusFilterSelect");
+    const trigger = document.getElementById("statusFilterTrigger");
+    const value = document.getElementById("statusFilterValue");
+    const options = document.getElementById("statusFilterOptions");
+    const optionItems = [...options.querySelectorAll('[role="option"]')];
+
+    function syncSelection() {
+        const selectedOption = [...select.options].find((option) => option.value === select.value);
+        value.textContent = selectedOption.textContent;
+        optionItems.forEach((option) => {
+            option.setAttribute("aria-selected", String(option.dataset.value === select.value));
+        });
+    }
+
+    function closeOptions(returnFocus = false) {
+        options.hidden = true;
+        trigger.setAttribute("aria-expanded", "false");
+        wrapper.classList.remove("custom-select--open-up");
+        wrapper.style.removeProperty("--custom-select-max-height");
+        if (returnFocus) trigger.focus();
+    }
+
+    function positionOptions() {
+        options.hidden = false;
+        const bounds = trigger.getBoundingClientRect();
+        const viewport = window.visualViewport;
+        const viewportTop = viewport?.offsetTop || 0;
+        const viewportBottom = viewportTop + (viewport?.height || window.innerHeight);
+        const spaceBelow = viewportBottom - bounds.bottom;
+        const spaceAbove = bounds.top - viewportTop;
+        const openAbove = spaceBelow < options.scrollHeight && spaceAbove > spaceBelow;
+        const availableSpace = Math.max(0, (openAbove ? spaceAbove : spaceBelow) - 12);
+
+        wrapper.classList.toggle("custom-select--open-up", openAbove);
+        wrapper.style.setProperty("--custom-select-max-height", `${availableSpace}px`);
+        trigger.setAttribute("aria-expanded", "true");
+    }
+
+    function openOptions() {
+        positionOptions();
+        (options.querySelector('[aria-selected="true"]') || optionItems[0]).focus();
+    }
+
+    trigger.addEventListener("click", () => {
+        if (options.hidden) openOptions();
+        else closeOptions();
+    });
+    trigger.addEventListener("keydown", (event) => {
+        if (["ArrowDown", "ArrowUp", "Enter", " "].includes(event.key)) {
+            event.preventDefault();
+            if (options.hidden) openOptions();
+        }
+    });
+    options.addEventListener("click", (event) => {
+        const option = event.target.closest('[role="option"]');
+        if (!option) return;
+
+        select.value = option.dataset.value;
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+        closeOptions(true);
+    });
+    options.addEventListener("keydown", (event) => {
+        const index = optionItems.indexOf(document.activeElement);
+        let nextIndex = index;
+
+        if (event.key === "ArrowDown") nextIndex = (index + 1) % optionItems.length;
+        else if (event.key === "ArrowUp") nextIndex = (index - 1 + optionItems.length) % optionItems.length;
+        else if (event.key === "Home") nextIndex = 0;
+        else if (event.key === "End") nextIndex = optionItems.length - 1;
+        else if (event.key === "Escape") {
+            event.preventDefault();
+            closeOptions(true);
+            return;
+        } else if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            document.activeElement.click();
+            return;
+        } else return;
+
+        event.preventDefault();
+        optionItems[nextIndex].focus();
+    });
+    document.addEventListener("click", (event) => {
+        if (!wrapper.contains(event.target)) closeOptions();
+    });
+    wrapper.addEventListener("focusout", (event) => {
+        if (!wrapper.contains(event.relatedTarget)) closeOptions();
+    });
+    select.addEventListener("change", syncSelection);
+
+    function repositionOpenOptions() {
+        if (!options.hidden) positionOptions();
+    }
+
+    window.addEventListener("resize", repositionOpenOptions);
+    window.addEventListener("scroll", repositionOpenOptions, true);
+    window.visualViewport?.addEventListener("resize", repositionOpenOptions);
+    window.visualViewport?.addEventListener("scroll", repositionOpenOptions);
+    syncSelection();
+}
+
+function redirectToLogin() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("currentUser");
+    window.location.replace("index.html");
+}
+
+// Admin dashboard setup
+async function setupAdminDashboard(currentUser) {
+    const requestsTable = document.getElementById("requestsTable");
+    const studentsTable = document.getElementById("studentsTable");
+    if (!requestsTable || !studentsTable) {
+        return;
+    }
+
+    const elements = {
+        adminName: document.getElementById("adminName"),
+        studentsCount: document.getElementById("studentsCount"),
+        totalCount: document.getElementById("totalCount"),
+        pendingCount: document.getElementById("pendingCount"),
+        approvedCount: document.getElementById("approvedCount"),
+        rejectedCount: document.getElementById("rejectedCount"),
+        searchInput: document.getElementById("searchInput"),
+        statusFilter: document.getElementById("statusFilter"),
+        clearExeatsBtn: document.getElementById("clearExeatsBtn"),
+        deleteConfirmModal: document.getElementById("deleteConfirmModal"),
+        deleteConfirmDialog: document.querySelector("#deleteConfirmModal [role='alertdialog']"),
+        deleteConfirmDescription: document.getElementById("deleteConfirmDescription"),
+        cancelDelete: document.getElementById("cancelDelete"),
+        confirmDelete: document.getElementById("confirmDelete"),
+        modal: document.getElementById("reviewModal"),
+        modalTitle: document.getElementById("modalTitle"),
+        modalDescription: document.getElementById("modalDescription"),
+        adminComment: document.getElementById("adminComment"),
+        cancelModal: document.getElementById("cancelModal"),
+        confirmReview: document.getElementById("confirmReview"),
+        toast: document.getElementById("toast")
+    };
+    setupResponsiveStatusFilter(elements.statusFilter);
+    
+    let users;
+    let requests;
+    let dashboardStats;
+    let selectedRequestId = null;
+    let nextReviewStatus = null;
+    let toastTimer;
+
+    try {
+        const results = await Promise.all([
+            request("/admin/students"),
+            request("/admin/requests"),
+            request("/admin/stats")
+        ]);
+        users = results[0].users.map(function (user) {
+            return Object.assign({}, user, {
+                matricNumber: user.matriculationNumber
+            });
+        });
+        requests = results[1].exeats.map(normalizeAdminExeat);
+        dashboardStats = results[2].stats;
+    } catch (error) {
+        console.error("Could not load admin dashboard data.", error);
+        if (error.status === 401 || error.status === 403) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("currentUser");
+            window.location.href = "index.html";
+            return;
+        }
+        showToast(error.message || "Could not load dashboard data from the server.", "error");
+        return;
+    }
+
+    // Display the admin's name in the dashboard header
+    if (elements.adminName && currentUser && currentUser.fullName) {
+        elements.adminName.textContent = currentUser.fullName;
+    }
+
+    function render() {
+        renderCounts();
+        renderStudents();
+        renderRequests();
+    }
+
+    function renderCounts() {
+        const counts = {
+            studentsCount: dashboardStats.students,
+            totalCount: dashboardStats.totalRequests,
+            pendingCount: dashboardStats.pending,
+            approvedCount: dashboardStats.approved,
+            rejectedCount: dashboardStats.rejected
+        };
+
+        Object.keys(counts).forEach(function (key) {
+            if (elements[key]) {
+                elements[key].textContent = counts[key];
+            }
+        });
+    }
+
+    function countRequests(status) {
+        return requests.filter(function (request) {
+            return request.status === status;
+        }).length;
+    }
+
+    function renderStudents() {
+        studentsTable.replaceChildren();
+        if (users.length === 0) {
+            appendEmptyRow(studentsTable, 5, "No registered students found.");
+            return;
+        }
+
+        users.forEach(function (user) {
+            const row = document.createElement("tr");
+            appendTextCell(row, user.fullName);
+            appendTextCell(row, user.matricNumber);
+            appendTextCell(row, user.department);
+            appendTextCell(row, user.email);
+            appendTextCell(row, formatDate(user.createdAt));
+            studentsTable.appendChild(row);
+        });
+    }
+
+    function renderRequests() {
+        const query = elements.searchInput
+            ? elements.searchInput.value.trim().toLowerCase()
+            : "";
+        const selectedStatus = elements.statusFilter
+            ? elements.statusFilter.value
+            : "All";
+        const visibleRequests = requests.filter(function (request) {
+            const matchesStatus = selectedStatus === "All" ||
+                request.status === selectedStatus;
+            const searchableText = [
+                request.studentName,
+                request.matricNumber,
+                request.type,
+                request.destination,
+                request.reason
+            ].join(" ").toLowerCase();
+
+            return matchesStatus && searchableText.includes(query);
+        });
+
+        requestsTable.replaceChildren();
+        if (visibleRequests.length === 0) {
+            appendEmptyRow(requestsTable, 9, "No matching exeat requests found.");
+            return;
+        }
+
+        visibleRequests.forEach(function (request) {
+            const row = document.createElement("tr");
+            appendTextCell(row, request.studentName);
+            appendTextCell(row, request.matricNumber);
+            appendTextCell(row, request.type);
+            appendTextCell(row, request.destination);
+            appendTextCell(row, formatDate(request.departure));
+            appendTextCell(row, formatDate(request.returnDate));
+            appendTextCell(row, request.reason);
+            appendStatusCell(row, request.status);
+            appendActionsCell(row, request);
+            requestsTable.appendChild(row);
+        });
+    }
+
+    function appendActionsCell(row, request) {
+        const cell = document.createElement("td");
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        if (request.status === "Pending") {
+            actions.appendChild(createReviewButton(request, "Approved"));
+            actions.appendChild(createReviewButton(request, "Rejected"));
+        } else if (request.adminComment) {
+            const comment = document.createElement("span");
+            comment.textContent = request.adminComment;
+            comment.title = request.adminComment;
+            cell.appendChild(comment);
+        } else {
+            cell.textContent = "Reviewed";
+        }
+
+        if (actions.childElementCount > 0) {
+            cell.appendChild(actions);
+        }
+        row.appendChild(cell);
+    }
+
+    function createReviewButton(request, status) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "btn " + (status === "Approved" ? "approve" : "reject");
+        button.dataset.requestId = String(request.id);
+        button.dataset.reviewStatus = status;
+        button.textContent = status === "Approved" ? "Approve" : "Reject";
+        button.setAttribute("aria-label", button.textContent + " request from " + (request.studentName || "student"));
+        return button;
+    }
+
+    function appendStatusCell(row, status) {
+        const cell = document.createElement("td");
+        const badge = document.createElement("span");
+        const normalizedStatus = String(status || "Unknown").toLowerCase();
+        badge.className = "status " + normalizedStatus;
+        badge.textContent = status || "Unknown";
+        cell.appendChild(badge);
+        row.appendChild(cell);
+    }
+
+    function appendTextCell(row, value) {
+        const cell = document.createElement("td");
+        cell.textContent = value === null || value === undefined ? "" : String(value);
+        row.appendChild(cell);
+    }
+
+    function appendEmptyRow(tableBody, columnCount, message) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = columnCount;
+        cell.className = "empty";
+        cell.textContent = message;
+        row.appendChild(cell);
+        tableBody.appendChild(row);
+    }
+
+    function openReview(requestId, status) {
+        const request = requests.find(function (item) {
+            return String(item.id) === requestId;
+        });
+        if (!request || request.status !== "Pending") {
+            showToast("This request is no longer pending.", "error");
+            render();
+            return;
+        }
+
+        selectedRequestId = requestId;
+        nextReviewStatus = status;
+        elements.modalTitle.textContent = status === "Approved"
+            ? "Approve Exeat Request"
+            : "Reject Exeat Request";
+        elements.modalDescription.textContent =
+            (request.studentName || "Student") + " — " +
+            (request.type || "Exeat") + " to " +
+            (request.destination || "unspecified destination");
+        elements.adminComment.value = request.adminComment || "";
+        elements.confirmReview.textContent = status === "Approved" ? "Approve" : "Reject";
+        elements.confirmReview.classList.toggle("reject", status === "Rejected");
+        elements.confirmReview.classList.toggle("approve", status === "Approved");
+        elements.modal.classList.add("show");
+        elements.modal.setAttribute("aria-modal", "true");
+        elements.modal.setAttribute("role", "dialog");
+        elements.adminComment.focus();
+    }
+
+    function closeReview() {
+        elements.modal.classList.remove("show");
+        elements.modal.removeAttribute("aria-modal");
+        elements.modal.removeAttribute("role");
+        selectedRequestId = null;
+        nextReviewStatus = null;
+    }
+
+    async function confirmRequestReview() {
+        const requestId = selectedRequestId;
+        const reviewStatus = nextReviewStatus;
+        const adminComment = elements.adminComment.value.trim();
+        const requestIndex = requests.findIndex(function (request) {
+            return String(request.id) === requestId;
+        });
+        if (
+            requestIndex < 0 ||
+            !["Approved", "Rejected"].includes(reviewStatus)
+        ) {
+            closeReview();
+            showToast("The selected request could not be found.", "error");
+            render();
+            return;
+        }
+
+        try {
+            await request("/admin/requests/" + encodeURIComponent(requestId), {
+                method: "PATCH",
+                body: JSON.stringify({
+                    status: reviewStatus.toLowerCase(),
+                    adminComment
+                })
+            });
+        } catch (error) {
+            console.error("Could not save the request review.", error);
+            if (error.status === 401 || error.status === 403) {
+                localStorage.removeItem("token");
+                localStorage.removeItem("currentUser");
+                window.location.href = "index.html";
+                return;
+            }
+            showToast(error.message || "Could not save your review. Please try again.", "error");
+            return;
+        }
+
+        const previousStatus = requests[requestIndex].status.toLowerCase();
+        const newStatus = reviewStatus.toLowerCase();
+        if (previousStatus !== newStatus) {
+            dashboardStats[previousStatus] -= 1;
+            dashboardStats[newStatus] += 1;
+        }
+        requests[requestIndex] = Object.assign({}, requests[requestIndex], {
+            status: reviewStatus,
+            adminComment,
+            reviewedAt: new Date().toISOString()
+        });
+        closeReview();
+        render();
+        showToast("Request " + reviewStatus.toLowerCase() + ".", "success");
+    }
+
+    function showToast(message, type) {
+        const toast = elements.toast;
+        if (!toast) {
+            console.error(message);
+            return;
+        }
+        window.clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.className = "toast show " + type;
+        toastTimer = window.setTimeout(function () {
+            toast.className = "toast";
+        }, 3500);
+    }
+
+    requestsTable.addEventListener("click", function (event) {
+        const button = event.target.closest("button[data-request-id]");
+        if (!button || !requestsTable.contains(button)) {
+            return;
+        }
+        openReview(button.dataset.requestId, button.dataset.reviewStatus);
+    });
+
+    if (elements.searchInput) {
+        elements.searchInput.addEventListener("input", renderRequests);
+    }
+    if (elements.statusFilter) {
+        elements.statusFilter.addEventListener("change", renderRequests);
+    }
+    if (elements.clearExeatsBtn) {
+        elements.clearExeatsBtn.addEventListener("click", clearAllExeats);
+    }
+    if (elements.cancelDelete) {
+        elements.cancelDelete.addEventListener("click", closeDeleteConfirmation);
+    }
+    if (elements.confirmDelete) {
+        elements.confirmDelete.addEventListener("click", confirmDeleteAllExeats);
+    }
+    if (elements.deleteConfirmModal) {
+        elements.deleteConfirmModal.addEventListener("click", function (event) {
+            if (event.target === elements.deleteConfirmModal) {
+                closeDeleteConfirmation();
+            }
+        });
+    }
+    if (elements.cancelModal) {
+        elements.cancelModal.addEventListener("click", closeReview);
+    }
+    if (elements.confirmReview) {
+        elements.confirmReview.addEventListener("click", confirmRequestReview);
+    }
+    if (elements.modal) {
+        elements.modal.addEventListener("click", function (event) {
+            if (event.target === elements.modal) {
+                closeReview();
+            }
+        });
+    }
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && elements.deleteConfirmModal.classList.contains("show")) {
+            closeDeleteConfirmation();
+            return;
+        }
+        if (event.key === "Escape" && elements.modal.classList.contains("show")) {
+            closeReview();
+        }
+    });
+
+    render();
+
+    async function clearAllExeats() {
+        if (requests.length === 0) {
+            showToast("There are no exeat requests to delete.", "error");
+            return;
+        }
+        elements.deleteConfirmDescription.textContent =
+            `Are you sure you want to permanently delete all ${requests.length} exeat requests? This action cannot be undone.`;
+        elements.deleteConfirmModal.classList.add("show");
+        elements.deleteConfirmDialog.setAttribute("aria-modal", "true");
+        elements.cancelDelete.focus();
+    }
+
+    function closeDeleteConfirmation() {
+        elements.deleteConfirmModal.classList.remove("show");
+        elements.deleteConfirmDialog.removeAttribute("aria-modal");
+        elements.clearExeatsBtn.focus();
+    }
+
+    async function confirmDeleteAllExeats() {
+        closeDeleteConfirmation();
+        elements.clearExeatsBtn.disabled = true;
+        try {
+            const result = await request("/admin/exeats", { method: "DELETE" });
+            requests = [];
+            dashboardStats.totalRequests = 0;
+            dashboardStats.pending = 0;
+            dashboardStats.approved = 0;
+            dashboardStats.rejected = 0;
+            closeReview();
+            render();
+            showToast(`${result.deletedCount} exeat requests deleted.`, "success");
+        } catch (error) {
+            console.error("Could not delete all exeat requests.", error);
+            if (error.status === 401 || error.status === 403) {
+                redirectToLogin();
+                return;
+            }
+            showToast(error.message || "Could not delete exeat requests. Please try again.", "error");
+        } finally {
+            elements.clearExeatsBtn.disabled = false;
+        }
+    }
+}
+
+function normalizeAdminExeat(exeat) {
+    const student = exeat.student || {};
+    const typeLabels = {
+        day: "Day Exeat",
+        weekend: "Weekend Exeat",
+        long: "Emergency Exeat"
+    };
+    return {
+        id: exeat._id,
+        studentName: student.fullName,
+        matricNumber: student.matriculationNumber,
+        type: typeLabels[exeat.exeatType] || exeat.exeatType,
+        destination: exeat.destination,
+        departure: String(exeat.departureDate).slice(0, 10),
+        returnDate: String(exeat.returnDate).slice(0, 10),
+        reason: exeat.reason,
+        status: exeat.status.charAt(0).toUpperCase() + exeat.status.slice(1),
+        adminComment: exeat.adminComment,
+        createdAt: exeat.createdAt
+    };
+}
+
+function readCurrentUser() {
+    const value = localStorage.getItem("currentUser");
+    return value === null ? null : JSON.parse(value);
+}
+
+function formatDate(dateString) {
+    if (!dateString) {
+        return "—";
+    }
+    const date = new Date(dateString.length === 10 ? dateString + "T00:00:00" : dateString);
+    return Number.isNaN(date.getTime())
+        ? String(dateString)
+        : date.toLocaleDateString("en-NG", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        });
+}
+
+function logout() {
+    return Auth.logout();
+}
+
+function setupSidebar() {
+    const menuIcon = document.getElementById("menu-icon");
+    const closeIcon = document.getElementById("close-icon");
+    const sidebar = document.getElementById("sidebar");
+    if (!menuIcon || !closeIcon || !sidebar) {
+        return;
+    }
+
+    function closeMenu() {
+        sidebar.classList.remove("active");
+        document.querySelector(".dashboard")?.classList.remove("sidebar-open");
+        menuIcon.setAttribute("aria-expanded", "false");
+    }
+
+    menuIcon.addEventListener("click", function () {
+        if (sidebar.classList.contains("active")) {
+            closeMenu();
+        } else {
+            sidebar.classList.add("active");
+            document.querySelector(".dashboard")?.classList.add("sidebar-open");
+            menuIcon.setAttribute("aria-expanded", "true");
+            closeIcon.focus();
+        }
+    });
+    closeIcon.addEventListener("click", closeMenu);
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", function (event) {
+            event.preventDefault();
+            logout();
+        });
+    }
+    sidebar.querySelectorAll("a").forEach(function (link) {
+        link.addEventListener("click", closeMenu);
+    });
+    const dashboard = document.querySelector(".dashboard");
+    if (dashboard) {
+        dashboard.addEventListener("click", function (event) {
+            if (event.target === dashboard && sidebar.classList.contains("active")) {
+                closeMenu();
+            }
+        });
+    }
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            closeMenu();
+        }
+    });
+    window.addEventListener("resize", function () {
+        if (window.innerWidth > 768) {
+            closeMenu();
+        }
+    });
+}
