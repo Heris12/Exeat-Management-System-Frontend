@@ -38,11 +38,14 @@ function setupResponsiveStatusFilter(select) {
     const trigger = document.getElementById("statusFilterTrigger");
     const value = document.getElementById("statusFilterValue");
     const options = document.getElementById("statusFilterOptions");
+    if (!wrapper || !trigger || !value || !options) return;
+
     const optionItems = [...options.querySelectorAll('[role="option"]')];
+    if (optionItems.length === 0) return;
 
     function syncSelection() {
         const selectedOption = [...select.options].find((option) => option.value === select.value);
-        value.textContent = selectedOption.textContent;
+        value.textContent = selectedOption ? selectedOption.textContent : "";
         optionItems.forEach((option) => {
             option.setAttribute("aria-selected", String(option.dataset.value === select.value));
         });
@@ -74,7 +77,10 @@ function setupResponsiveStatusFilter(select) {
 
     function openOptions() {
         positionOptions();
-        (options.querySelector('[aria-selected="true"]') || optionItems[0]).focus();
+        const selectedOption = options.querySelector('[aria-selected="true"]') || optionItems[0];
+        if (selectedOption) {
+            selectedOption.focus();
+        }
     }
 
     trigger.addEventListener("click", () => {
@@ -218,6 +224,10 @@ async function setupAdminDashboard(currentUser) {
     }
 
     function renderCounts() {
+        if (!dashboardStats) {
+            return;
+        }
+
         const counts = {
             studentsCount: dashboardStats.students,
             totalCount: dashboardStats.totalRequests,
@@ -371,27 +381,41 @@ async function setupAdminDashboard(currentUser) {
 
         selectedRequestId = requestId;
         nextReviewStatus = status;
-        elements.modalTitle.textContent = status === "Approved"
-            ? "Approve Exeat Request"
-            : "Reject Exeat Request";
-        elements.modalDescription.textContent =
-            (request.studentName || "Student") + " — " +
-            (request.type || "Exeat") + " to " +
-            (request.destination || "unspecified destination");
-        elements.adminComment.value = request.adminComment || "";
-        elements.confirmReview.textContent = status === "Approved" ? "Approve" : "Reject";
-        elements.confirmReview.classList.toggle("reject", status === "Rejected");
-        elements.confirmReview.classList.toggle("approve", status === "Approved");
-        elements.modal.classList.add("show");
-        elements.modal.setAttribute("aria-modal", "true");
-        elements.modal.setAttribute("role", "dialog");
-        elements.adminComment.focus();
+        if (elements.modalTitle) {
+            elements.modalTitle.textContent = status === "Approved"
+                ? "Approve Exeat Request"
+                : "Reject Exeat Request";
+        }
+        if (elements.modalDescription) {
+            elements.modalDescription.textContent =
+                (request.studentName || "Student") + " — " +
+                (request.type || "Exeat") + " to " +
+                (request.destination || "unspecified destination");
+        }
+        if (elements.adminComment) {
+            elements.adminComment.value = request.adminComment || "";
+        }
+        if (elements.confirmReview) {
+            elements.confirmReview.textContent = status === "Approved" ? "Approve" : "Reject";
+            elements.confirmReview.classList.toggle("reject", status === "Rejected");
+            elements.confirmReview.classList.toggle("approve", status === "Approved");
+        }
+        if (elements.modal) {
+            elements.modal.classList.add("show");
+            elements.modal.setAttribute("aria-modal", "true");
+            elements.modal.setAttribute("role", "dialog");
+        }
+        if (elements.adminComment) {
+            elements.adminComment.focus();
+        }
     }
 
     function closeReview() {
-        elements.modal.classList.remove("show");
-        elements.modal.removeAttribute("aria-modal");
-        elements.modal.removeAttribute("role");
+        if (elements.modal) {
+            elements.modal.classList.remove("show");
+            elements.modal.removeAttribute("aria-modal");
+            elements.modal.removeAttribute("role");
+        }
         selectedRequestId = null;
         nextReviewStatus = null;
     }
@@ -435,9 +459,13 @@ async function setupAdminDashboard(currentUser) {
 
         const previousStatus = requests[requestIndex].status.toLowerCase();
         const newStatus = reviewStatus.toLowerCase();
-        if (previousStatus !== newStatus) {
-            dashboardStats[previousStatus] -= 1;
-            dashboardStats[newStatus] += 1;
+        if (dashboardStats && previousStatus !== newStatus) {
+            if (typeof dashboardStats[previousStatus] === "number") {
+                dashboardStats[previousStatus] -= 1;
+            }
+            if (typeof dashboardStats[newStatus] === "number") {
+                dashboardStats[newStatus] += 1;
+            }
         }
         requests[requestIndex] = Object.assign({}, requests[requestIndex], {
             status: reviewStatus,
@@ -507,45 +535,70 @@ async function setupAdminDashboard(currentUser) {
         });
     }
     document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape" && elements.deleteConfirmModal.classList.contains("show")) {
+        if (event.key !== "Escape") {
+            return;
+        }
+        if (elements.deleteConfirmModal && elements.deleteConfirmModal.classList.contains("show")) {
             closeDeleteConfirmation();
             return;
         }
-        if (event.key === "Escape" && elements.modal.classList.contains("show")) {
+        if (elements.modal && elements.modal.classList.contains("show")) {
             closeReview();
         }
     });
 
     render();
+    if (sessionStorage.getItem("loginSuccessMessage") === "true") {
+        sessionStorage.removeItem("loginSuccessMessage");
+        showToast(`Welcome, ${currentUser.fullName || "Admin"}! You are now logged in.`, "success");
+    }
 
     async function clearAllExeats() {
-        if (requests.length === 0) {
+        if (!requests || requests.length === 0) {
             showToast("There are no exeat requests to delete.", "error");
             return;
         }
-        elements.deleteConfirmDescription.textContent =
-            `Are you sure you want to permanently delete all ${requests.length} exeat requests? This action cannot be undone.`;
-        elements.deleteConfirmModal.classList.add("show");
-        elements.deleteConfirmDialog.setAttribute("aria-modal", "true");
-        elements.cancelDelete.focus();
+        if (elements.deleteConfirmDescription) {
+            elements.deleteConfirmDescription.textContent =
+                `Are you sure you want to permanently delete all ${requests.length} exeat requests? This action cannot be undone.`;
+        }
+        if (elements.deleteConfirmModal) {
+            elements.deleteConfirmModal.classList.add("show");
+        }
+        if (elements.deleteConfirmDialog) {
+            elements.deleteConfirmDialog.setAttribute("aria-modal", "true");
+        }
+        if (elements.cancelDelete) {
+            elements.cancelDelete.focus();
+        }
     }
 
     function closeDeleteConfirmation() {
-        elements.deleteConfirmModal.classList.remove("show");
-        elements.deleteConfirmDialog.removeAttribute("aria-modal");
-        elements.clearExeatsBtn.focus();
+        if (elements.deleteConfirmModal) {
+            elements.deleteConfirmModal.classList.remove("show");
+        }
+        if (elements.deleteConfirmDialog) {
+            elements.deleteConfirmDialog.removeAttribute("aria-modal");
+        }
+        if (elements.clearExeatsBtn) {
+            elements.clearExeatsBtn.focus();
+        }
     }
 
     async function confirmDeleteAllExeats() {
         closeDeleteConfirmation();
-        elements.clearExeatsBtn.disabled = true;
+        if (elements.clearExeatsBtn) {
+            elements.clearExeatsBtn.disabled = true;
+        }
         try {
             const result = await request("/admin/exeats", { method: "DELETE" });
             requests = [];
-            dashboardStats.totalRequests = 0;
-            dashboardStats.pending = 0;
-            dashboardStats.approved = 0;
-            dashboardStats.rejected = 0;
+            if (dashboardStats) {
+                dashboardStats.totalRequests = 0;
+                dashboardStats.pending = 0;
+                dashboardStats.approved = 0;
+                dashboardStats.rejected = 0;
+            }
             closeReview();
             render();
             showToast(`${result.deletedCount} exeat requests deleted.`, "success");
@@ -557,30 +610,33 @@ async function setupAdminDashboard(currentUser) {
             }
             showToast(error.message || "Could not delete exeat requests. Please try again.", "error");
         } finally {
-            elements.clearExeatsBtn.disabled = false;
+            if (elements.clearExeatsBtn) {
+                elements.clearExeatsBtn.disabled = false;
+            }
         }
     }
 }
 
 function normalizeAdminExeat(exeat) {
-    const student = exeat.student || {};
+    const student = exeat && exeat.student ? exeat.student : {};
     const typeLabels = {
         day: "Day Exeat",
         weekend: "Weekend Exeat",
         long: "Emergency Exeat"
     };
+    const rawStatus = typeof exeat?.status === "string" ? exeat.status : "pending";
     return {
-        id: exeat._id,
+        id: exeat?._id,
         studentName: student.fullName,
         matricNumber: student.matriculationNumber,
-        type: typeLabels[exeat.exeatType] || exeat.exeatType,
-        destination: exeat.destination,
-        departure: String(exeat.departureDate).slice(0, 10),
-        returnDate: String(exeat.returnDate).slice(0, 10),
-        reason: exeat.reason,
-        status: exeat.status.charAt(0).toUpperCase() + exeat.status.slice(1),
-        adminComment: exeat.adminComment,
-        createdAt: exeat.createdAt
+        type: typeLabels[exeat?.exeatType] || exeat?.exeatType || "Exeat",
+        destination: exeat?.destination || "",
+        departure: String(exeat?.departureDate || "").slice(0, 10),
+        returnDate: String(exeat?.returnDate || "").slice(0, 10),
+        reason: exeat?.reason || "",
+        status: rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1),
+        adminComment: exeat?.adminComment || "",
+        createdAt: exeat?.createdAt || null
     };
 }
 
