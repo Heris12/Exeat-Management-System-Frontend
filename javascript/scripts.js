@@ -5,19 +5,29 @@ document.addEventListener("DOMContentLoaded", async function () {
     let currentUser = null;
     if (document.querySelector(".dashboard")) {
         if (!localStorage.getItem("token")) {
-            window.location.href = "index.html";
+            window.location.replace("index.html?error=admin-access");
             return;
         }
         try {
             const response = await request("/auth/me");
             currentUser = response.user;
+            if (!currentUser || currentUser.role !== "student") {
+                localStorage.removeItem("token");
+                localStorage.removeItem("currentUser");
+                window.location.replace("index.html?error=admin-access");
+                return;
+            }
             localStorage.setItem("currentUser", JSON.stringify(currentUser));
+            document.body.style.visibility = "visible";
         } catch (error) {
             console.error("Could not authenticate the current session:", error);
             if (error.status === 401 || error.status === 403) {
-                logout();
+                localStorage.removeItem("token");
+                localStorage.removeItem("currentUser");
+                window.location.replace("index.html?error=admin-access");
                 return;
             }
+            document.body.style.visibility = "visible";
             showMessage(error.message || "Unable to connect to the server.", "error");
             return;
         }
@@ -81,6 +91,14 @@ function setupLogin() {
     if (!loginForm) {
         return;
     }
+
+    const pageUrl = new URL(window.location.href);
+    if (pageUrl.searchParams.get("error") === "admin-access") {
+        showMessage("Access denied. Please sign in with an account authorized for this page.", "error");
+        pageUrl.searchParams.delete("error");
+        window.history.replaceState({}, "", pageUrl);
+    }
+
     loginForm.addEventListener("submit", async function (e) {
         e.preventDefault();
 
@@ -255,7 +273,13 @@ function setupExeatTypeSelect() {
     const trigger = document.getElementById("exeatTypeTrigger");
     const value = document.getElementById("exeatTypeValue");
     const options = document.getElementById("exeatTypeOptions");
+    if (!wrapper || !select || !trigger || !value || !options) {
+        return;
+    }
     const optionItems = [...options.querySelectorAll('[role="option"]')];
+    if (optionItems.length === 0) {
+        return;
+    }
 
     function syncSelection() {
         const selectedOption = [...select.options].find((option) => option.value === select.value);
@@ -355,12 +379,14 @@ function setupExeatTypeSelect() {
     window.visualViewport?.addEventListener("resize", repositionOpenOptions);
     window.visualViewport?.addEventListener("scroll", repositionOpenOptions);
     select.addEventListener("change", syncSelection);
-    select.form.addEventListener("reset", () => {
-        window.setTimeout(() => {
-            syncSelection();
-            closeOptions();
+    if (select.form) {
+        select.form.addEventListener("reset", () => {
+            window.setTimeout(() => {
+                syncSelection();
+                closeOptions();
+            });
         });
-    });
+    }
     syncSelection();
 }
 
@@ -377,7 +403,7 @@ async function setupDashboard(currentUser) {
     }
 
     if (!currentUser) {
-        window.location.href = "index.html";
+        window.location.replace("index.html?error=admin-access");
         return;
     }
 

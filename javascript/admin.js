@@ -144,7 +144,7 @@ function setupResponsiveStatusFilter(select) {
 function redirectToLogin() {
     localStorage.removeItem("token");
     localStorage.removeItem("currentUser");
-    window.location.replace("index.html");
+    window.location.replace("index.html?error=admin-access");
 }
 
 // Admin dashboard setup
