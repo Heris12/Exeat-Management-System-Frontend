@@ -1,7 +1,7 @@
 import { request } from "./api.js";
 
 const TOKEN_KEY = "token";
-const LOGIN_PAGE = "/client/html/index.html";
+const LOGIN_PAGE = "index.html";
 
 export const Auth = {
     user: null,

@@ -31,7 +31,7 @@ async function verifyAdminAccess() {
 function redirectToLogin() {
     localStorage.removeItem("token");
     localStorage.removeItem("currentUser");
-    window.location.replace("index.html");
+    window.location.replace("index.html?error=admin-access");
 }
 
 function setupCreateUserForm() {
@@ -41,20 +41,35 @@ function setupCreateUserForm() {
     const roleTrigger = document.getElementById("roleTrigger");
     const roleValue = document.getElementById("roleValue");
     const roleOptions = document.getElementById("roleOptions");
+    if (!form || !role || !roleSelect || !roleTrigger || !roleValue || !roleOptions) {
+        return;
+    }
     const roleOptionItems = [...roleOptions.querySelectorAll('[role="option"]')];
+    if (roleOptionItems.length === 0) {
+        return;
+    }
     const studentFields = document.getElementById("studentFields");
     const matriculationNumber = document.getElementById("matriculationNumber");
     const department = document.getElementById("department");
     const submitButton = document.getElementById("createUserButton");
     const message = document.getElementById("formMessage");
+    if (!studentFields || !matriculationNumber || !department || !submitButton || !message) {
+        return;
+    }
 
     function updateRoleFields() {
         const isStudent = role.value === "student";
-        studentFields.hidden = !isStudent;
-        matriculationNumber.required = isStudent;
-        department.required = isStudent;
-        matriculationNumber.disabled = !isStudent;
-        department.disabled = !isStudent;
+        if (studentFields) {
+            studentFields.hidden = !isStudent;
+        }
+        if (matriculationNumber) {
+            matriculationNumber.required = isStudent;
+            matriculationNumber.disabled = !isStudent;
+        }
+        if (department) {
+            department.required = isStudent;
+            department.disabled = !isStudent;
+        }
     }
 
     function syncRoleSelector() {
