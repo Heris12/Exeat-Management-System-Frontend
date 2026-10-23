@@ -1,4 +1,6 @@
-const API_BASE_URL = window.API_BASE_URL || "http://localhost:3000/api";
+// const API_BASE_URL = window.API_BASE_URL || "http://localhost:3000/api";
+const API_BASE = window.location.hostname === "localhost" ? "http://localhost:3000/api" : 
+"https://exeat-management-system-backend-ew88.onrender.com/api"
 
 export async function request(endpoint, options = {}) {
     const headers = new Headers(options.headers);
