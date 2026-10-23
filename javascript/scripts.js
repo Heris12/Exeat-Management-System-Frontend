@@ -29,6 +29,13 @@ document.addEventListener("DOMContentLoaded", async function () {
     setupDashboard(currentUser);
     setupRequestsPage(currentUser);
     setupLogout();
+
+    const studentName = document.getElementById("studentName");
+    const loginSucceeded = sessionStorage.getItem("loginSuccessMessage") === "true";
+    if (studentName && currentUser && loginSucceeded) {
+        sessionStorage.removeItem("loginSuccessMessage");
+        showLoginSuccessToast(currentUser.fullName);
+    }
 });
 
 // MESSAGE-BOX FUNCTION
@@ -93,6 +100,7 @@ function setupLogin() {
 
             localStorage.setItem("token", token);
             localStorage.setItem("currentUser", JSON.stringify(user));
+            sessionStorage.setItem("loginSuccessMessage", "true");
             window.location.href = user.role === "admin"
                 ? "admin.html"
                 : "dashboard.html";
@@ -101,6 +109,16 @@ function setupLogin() {
             showMessage(error.message || "Unable to log in. Please try again.", "error");
         }
     });
+}
+
+function showLoginSuccessToast(fullName) {
+    const toast = document.createElement("div");
+    toast.className = "toast show success";
+    toast.setAttribute("role", "status");
+    toast.setAttribute("aria-live", "polite");
+    toast.textContent = `Welcome, ${fullName || "you"}! You are now logged in.`;
+    document.body.appendChild(toast);
+    window.setTimeout(() => toast.remove(), 4000);
 }
     
 // REGISTER FORM 
