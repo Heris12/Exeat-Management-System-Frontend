@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <title>School Exeat System || Hostel Warden</title>
+    <link rel="icon" type="image/png" href="eui%20logo.png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css">
+</head>
+<body style="visibility: hidden">
+    <div class="dashboard">
+        <button class="menu-icon" id="menu-icon" aria-label="Open navigation menu"
+            aria-expanded="false" aria-controls="sidebar">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <aside class="sidebar" id="sidebar">
+            <button class="close-icon" id="close-icon" aria-label="Close navigation menu">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="logo">
+                <img src="eui logo.png" alt="Edo State University logo">
+            </div>
+            <h2>Warden Portal</h2>
+            <a href="#requests" class="active"><i class="fa-solid fa-file-circle-check" aria-hidden="true"></i> Exeat Requests</a>
+            <a href="#students"><i class="fa-solid fa-users" aria-hidden="true"></i> Hostel Students</a>
+            <a href="index.html" class="logout" id="logoutBtn">Logout <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i></a>
+        </aside>
+
+        <main class="main-content">
+            <div class="top-bar">
+                <div>
+                    <h1 id="wardenHostel">Hostel Warden Portal</h1>
+                    <p>Review exeat requests and view your hostel roster.</p>
+                </div>
+                <div class="admin-badge">
+                    <i class="fa-solid fa-user-shield" aria-hidden="true"></i>
+                    <span id="wardenName">Warden</span>
+                </div>
+            </div>
+
+            <section class="stats admin-stat warden-stats">
+                <div class="stat-card">
+                    <i class="fa-solid fa-users" aria-hidden="true"></i>
+                    <h3 id="hostelStudentCount">0</h3>
+                    <p>Students in this hostel</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
+                    <h3 id="hostelRequestCount">0</h3>
+                    <p>Hostel Exeat Requests</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fa-solid fa-clock" aria-hidden="true"></i>
+                    <h3 id="hostelPendingCount">0</h3>
+                    <p>Pending requests</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                    <h3 id="hostelApprovedCount">0</h3>
+                    <p>Approved Requests</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
+                    <h3 id="hostelRejectedCount">0</h3>
+                    <p>Rejected Requests</p>
+                </div>
+            </section>
+
+            <section class="panel" id="requests">
+                <div class="panel-header">
+                    <h2>Exeat Requests for <span id="requestHostelLabel">your hostel</span></h2>
+                    <div class="controls admin-request-controls warden-exeat-controls">
+                        <input class="admin-search-input" type="search" id="wardenRequestSearch"
+                            placeholder="Search student or destination" aria-label="Search exeat requests">
+                        <div class="custom-select admin-status-select" id="wardenRequestStatusSelect">
+                            <select id="wardenRequestStatus" hidden aria-hidden="true" tabindex="-1">
+                                <option value="all">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                            <button class="custom-select-trigger" id="wardenRequestStatusTrigger" type="button"
+                                aria-haspopup="listbox" aria-expanded="false"
+                                aria-controls="wardenRequestStatusOptions" aria-label="Filter requests by status">
+                                <span id="wardenRequestStatusValue">All Status</span>
+                                <span class="custom-select-caret" aria-hidden="true"></span>
+                            </button>
+                            <div class="custom-select-options" id="wardenRequestStatusOptions" role="listbox"
+                                aria-label="Request status" hidden>
+                                <div class="custom-select-option" role="option" tabindex="-1"
+                                    data-value="all" aria-selected="true">All Status</div>
+                                <div class="custom-select-option" role="option" tabindex="-1"
+                                    data-value="pending" aria-selected="false">Pending</div>
+                                <div class="custom-select-option" role="option" tabindex="-1"
+                                    data-value="approved" aria-selected="false">Approved</div>
+                                <div class="custom-select-option" role="option" tabindex="-1"
+                                    data-value="rejected" aria-selected="false">Rejected</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Matric No.</th>
+                                <th>Type</th>
+                                <th>Destination</th>
+                                <th>Departure</th>
+                                <th>Return</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Student Movement</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="wardenRequests">
+                            <tr><td colspan="10" class="loading">Loading requests...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="panel" id="students">
+                <div class="panel-header">
+                    <h2>Student Roster — <span id="studentHostelLabel">your hostel</span></h2>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Full Name</th>
+                                <th>Matric Number</th>
+                                <th>Department</th>
+                                <th>Email</th>
+                                <th>Hostel Hall</th>
+                            </tr>
+                        </thead>
+                        <tbody id="wardenStudents">
+                            <tr><td colspan="5" class="loading">Loading students...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <p id="wardenMessage" role="status" aria-live="polite"></p>
+        </main>
+    </div>
+    <div class="modal" id="wardenReviewModal">
+        <div class="modal-card">
+            <h2 id="wardenReviewTitle">Review Exeat Request</h2>
+            <p id="wardenReviewDescription" style="margin-bottom:12px;color:#6b7280;"></p>
+            <div class="modal-actions">
+                <button class="btn cancel" id="wardenCancelReview" type="button">Cancel</button>
+                <button class="btn approve" id="wardenConfirmReview" type="button">Confirm</button>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="javascript/warden.js?v=20261029-no-portal-comments"></script>
+</body>
+</html>

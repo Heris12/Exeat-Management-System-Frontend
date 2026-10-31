@@ -40,44 +40,26 @@ export const Auth = {
             }
     },
 
-    async register(fullName, email, matriculationNumber, department, password) {
+    async login(identifier, password) {
         try {
-            const response = await request("/auth/register", {
+            const response = await request("/auth/login", {
                 method: "POST",
-                body: JSON.stringify({ fullName, email, matriculationNumber, department, password })
+                body: JSON.stringify({ identifier, password })
             });
 
             const payload = response.data ?? response;
-            localStorage.removeItem(TOKEN_KEY);
-            Auth.user = null;
-            return payload;
-            
-            } catch (error) {
-                console.error("Error registering user:", error);
-                throw error;
+            const token = payload.token;
+            if (token) {
+                localStorage.setItem(TOKEN_KEY, token);
             }
+
+            Auth.user = payload.user ?? null;
+            return Auth.user;
+        } catch (error) {
+            console.error("Error logging in:", error);
+            throw error;
+        }
     },
-
-        async login(email, password) {
-            try {
-                const response = await request("/auth/login", {
-                    method: "POST",
-                    body: JSON.stringify({ email, password })
-                });
-
-                const payload = response.data ?? response;
-                const token = payload.token;
-                if (token) {
-                    localStorage.setItem(TOKEN_KEY, token);
-                }
-
-                Auth.user = payload.user ?? null;
-                return Auth.user;
-            } catch (error) {
-                console.error("Error logging in:", error);
-                throw error;
-            }
-        },
 
     async logout() {
         try {

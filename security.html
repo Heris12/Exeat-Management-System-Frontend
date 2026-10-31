@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <title>School Exeat System || Security</title>
+    <link rel="icon" type="image/png" href="eui%20logo.png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css">
+</head>
+<body style="visibility: hidden">
+    <div class="dashboard">
+        <button class="menu-icon" id="menu-icon" aria-label="Open navigation menu"
+            aria-expanded="false" aria-controls="sidebar">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <aside class="sidebar" id="sidebar">
+            <button class="close-icon" id="close-icon" aria-label="Close navigation menu">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="logo">
+                <img src="eui logo.png" alt="Edo State University logo">
+            </div>
+            <h2>Security Portal</h2>
+            <a href="#exeats" class="active"><i class="fa-solid fa-door-open" aria-hidden="true"></i> Approved Exeats</a>
+            <a href="index.html" class="logout" id="logoutBtn">Logout <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i></a>
+        </aside>
+
+        <main class="main-content">
+            <div class="top-bar">
+                <div>
+                    <h1>Security Departure Check</h1>
+                    <p>Verify approved exeats and record when a student leaves campus.</p>
+                </div>
+                <div class="admin-badge">
+                    <i class="fa-solid fa-user-shield" aria-hidden="true"></i>
+                    <span id="securityName">Security Staff</span>
+                </div>
+            </div>
+
+            <section class="stats security-stats" aria-label="Student movement statistics">
+                <div class="stat-card">
+                    <i class="fa-solid fa-file-circle-check" aria-hidden="true"></i>
+                    <h3 id="approvedCount">0</h3>
+                    <p>Approved exeats</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fa-solid fa-person-walking-arrow-right" aria-hidden="true"></i>
+                    <h3 id="departedCount">0</h3>
+                    <p>Departures confirmed</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fa-solid fa-person-walking-arrow-loop-left" aria-hidden="true"></i>
+                    <h3 id="returnedCount">0</h3>
+                    <p>Returns confirmed</p>
+                </div>
+            </section>
+
+            <section class="panel" id="exeats">
+                <div class="panel-header">
+                    <h2>Approved Exeat Requests</h2>
+                    <div class="controls security-controls">
+                        <input class="admin-search-input" type="search" id="securitySearch"
+                            placeholder="Search student or destination" aria-label="Search approved exeats">
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Matric No.</th>
+                                <th>Hostel</th>
+                                <th>Destination</th>
+                                <th>Departure</th>
+                                <th>Return</th>
+                                <th>Departure Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="securityExeats">
+                            <tr><td colspan="8" class="loading">Loading approved exeats...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <p id="securityMessage" role="status" aria-live="polite"></p>
+        </main>
+    </div>
+    <script type="module" src="javascript/security.js"></script>
+</body>
+</html>
