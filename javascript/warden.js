@@ -170,7 +170,7 @@ function renderStudents(students) {
     const body = document.getElementById("wardenStudents");
     body.replaceChildren();
     if (students.length === 0) {
-        appendEmptyRow(body, 5, "No students are assigned to this hostel yet.");
+        appendEmptyRow(body, 4, "No students are assigned to this hostel yet.");
         return;
     }
 
@@ -179,7 +179,6 @@ function renderStudents(students) {
         appendTextCell(row, student.fullName);
         appendTextCell(row, student.matriculationNumber);
         appendTextCell(row, student.department);
-        appendTextCell(row, student.email);
         appendTextCell(row, student.hostel);
         body.appendChild(row);
     });
@@ -205,7 +204,6 @@ function renderRequests() {
             student.fullName,
             student.matriculationNumber,
             student.department,
-            student.email,
             exeatTypeLabel(requestItem.exeatType),
             requestItem.destination,
             requestItem.reason

@@ -157,25 +157,25 @@ async function confirmDeparture(exeat, button) {
     } finally {
         button.disabled = false;
     }
+}
 
-    async function confirmReturn(exeat, button) {
-        const studentName = exeat.student?.fullName || "this student";
-        if (!window.confirm(`Confirm that ${studentName} has returned to school?`)) return;
+async function confirmReturn(exeat, button) {
+    const studentName = exeat.student?.fullName || "this student";
+    if (!window.confirm(`Confirm that ${studentName} has returned to school?`)) return;
 
-        button.disabled = true;
-        try {
-            const result = await request(`/security/exeats/${encodeURIComponent(exeat._id)}/return`, {
-                method: "PATCH"
-            });
-            showMessage(result.message || "Student return confirmed.", "success");
-            await loadApprovedExeats();
-        } catch (error) {
-            console.error("Could not confirm student return:", error);
-            showMessage(error.message || "Could not confirm this return.", "error");
-            if (error.status === 401 || error.status === 403) redirectToLogin();
-        } finally {
-            button.disabled = false;
-        }
+    button.disabled = true;
+    try {
+        const result = await request(`/security/exeats/${encodeURIComponent(exeat._id)}/return`, {
+            method: "PATCH"
+        });
+        showMessage(result.message || "Student return confirmed.", "success");
+        await loadApprovedExeats();
+    } catch (error) {
+        console.error("Could not confirm student return:", error);
+        showMessage(error.message || "Could not confirm this return.", "error");
+        if (error.status === 401 || error.status === 403) redirectToLogin();
+    } finally {
+        button.disabled = false;
     }
 }
 
