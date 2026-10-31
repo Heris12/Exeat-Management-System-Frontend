@@ -1,4 +1,4 @@
-import { request } from "./api.js";
+import { request, downloadExeatSlip } from "./api.js";
 import { Auth } from "./auth.js";
 
 document.addEventListener("DOMContentLoaded", async function () {
@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     setupLogin();
-    setupRegistration();
+    setupPasswordRecovery();
     setupExeatForm(currentUser);
     setupDashboard(currentUser);
     setupRequestsPage(currentUser);
@@ -102,12 +102,17 @@ function setupLogin() {
     loginForm.addEventListener("submit", async function (e) {
         e.preventDefault();
 
-        const email = document.getElementById("email").value.trim().toLowerCase();
+        const identifier = document.getElementById("identifier").value.trim();
         const password = document.getElementById("password").value;
+        const loginButton = document.getElementById("loginButton");
+        if (loginButton) {
+            loginButton.disabled = true;
+            loginButton.textContent = "Logging in...";
+        }
         try {
             const response = await request("/auth/login", {
                 method: "POST",
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ identifier, password })
             });
             const payload = response.data ?? response;
             const user = payload.user ?? payload.data?.user;
@@ -121,10 +126,19 @@ function setupLogin() {
             sessionStorage.setItem("loginSuccessMessage", "true");
             window.location.href = user.role === "admin"
                 ? "admin.html"
-                : "dashboard.html";
+                : user.role === "portal"
+                    ? "warden.html"
+                    : user.role === "security"
+                        ? "security.html"
+                        : "dashboard.html";
         } catch (error) {
             console.error("Login failed:", error);
             showMessage(error.message || "Unable to log in. Please try again.", "error");
+        } finally {
+            if (loginButton) {
+                loginButton.disabled = false;
+                loginButton.textContent = "Login";
+            }
         }
     });
 }
@@ -138,53 +152,88 @@ function showLoginSuccessToast(fullName) {
     document.body.appendChild(toast);
     window.setTimeout(() => toast.remove(), 4000);
 }
-    
-// REGISTER FORM 
-function setupRegistration() {
-    const registerForm = document.getElementById("registerForm");
-    if (!registerForm) {
+
+// RESET FORGOTTEN PASSWORD
+function setupPasswordRecovery() {
+    const requestForm = document.getElementById("requestResetForm");
+    const resetForm = document.getElementById("resetPasswordForm");
+    const query = new URLSearchParams(window.location.search);
+    const token = query.get("token") || "";
+
+    if (requestForm && token) {
+        window.location.replace(`reset-password.html${window.location.search}${window.location.hash}`);
         return;
     }
 
-    registerForm.addEventListener("submit", async function (e) {
-        e.preventDefault();
-        const fullName = document.getElementById("fullName").value.trim();
-        const matricNumber = document.getElementById("matricNumber").value.trim();
-        const department = document.getElementById("department").value.trim();
-        const email = document.getElementById("registerEmail").value.trim().toLowerCase();
-        const password = document.getElementById("registerPassword").value;
+    if (requestForm) {
+        requestForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const email = document.getElementById("resetEmail").value.trim().toLowerCase();
+            const submitButton = document.getElementById("requestResetButton");
+            submitButton.disabled = true;
+            submitButton.textContent = "Sending...";
 
-        if (!fullName || !matricNumber || !department || !email || !password) {
-            showMessage("Please fill in all fields.", "error");
+            try {
+                const response = await request("/auth/forgot-password", {
+                    method: "POST",
+                    body: JSON.stringify({ email })
+                });
+                showMessage(response.message || "If an account exists for that email, a password reset link will be sent.");
+                requestForm.reset();
+            } catch (error) {
+                console.error("Could not request a password reset:", error);
+                showMessage(error.message || "Unable to request a password reset.", "error");
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = "Send reset link";
+            }
+        });
+    }
+
+    if (resetForm) {
+        const title = document.getElementById("recoveryTitle");
+        const description = document.getElementById("recoveryDescription");
+        resetForm.hidden = !token;
+        if (!token) {
+            if (query.has("token")) {
+                showMessage("This password reset link is invalid or incomplete.", "error");
+            }
             return;
         }
+        title.textContent = "Choose a new password";
+        description.textContent = "Enter and confirm your new password below.";
 
-        if (password.length < 6) {
-            showMessage("Password must be at least 6 characters.", "error");
-            return;
-        }
+        resetForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const password = document.getElementById("newPassword").value;
+            const confirmPassword = document.getElementById("confirmPassword").value;
+            if (password !== confirmPassword) {
+                showMessage("The passwords do not match.", "error");
+                return;
+            }
 
-        try {
-            await request("/auth/register", {
-                method: "POST",
-                body: JSON.stringify({
-                    fullName,
-                    matricNumber,
-                    department,
-                    email,
-                    password
-                })
-            });
-            showMessage("Account created successfully. Please log in.");
-            registerForm.reset();
-            setTimeout(function () {
-                window.location.href = "index.html";
-            }, 1000);
-        } catch (error) {
-            console.error("Registration failed:", error);
-            showMessage(error.message || "Unable to create your account.", "error");
-        }
-    });
+            const submitButton = document.getElementById("resetPasswordButton");
+            submitButton.disabled = true;
+            submitButton.textContent = "Updating...";
+            try {
+                const response = await request("/auth/reset-password", {
+                    method: "POST",
+                    body: JSON.stringify({ token, password })
+                });
+                showMessage(response.message || "Your password has been updated.");
+                resetForm.reset();
+                window.setTimeout(() => {
+                    window.location.replace("index.html");
+                }, 1200);
+            } catch (error) {
+                console.error("Could not reset the password:", error);
+                showMessage(error.message || "Unable to reset your password.", "error");
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = "Update password";
+            }
+        });
+    }
 }
 
 // EXEAT REQUEST FORM
@@ -215,11 +264,15 @@ function setupExeatForm(currentUser) {
         }
     )};
 
-    setupExeatTypeSelect();
+    setupCustomSelect("exeatType");
+    const submitButton = exeatForm.querySelector('button[type="submit"]');
+    if (!currentUser.hostel) {
+        if (submitButton) submitButton.disabled = true;
+        showMessage("Your account has no hostel assigned. Contact the main administrator before requesting an exeat.", "error");
+    }
 
     exeatForm.addEventListener("submit", async function (e) {
         e.preventDefault();
-        
         const type = document.getElementById("exeatType").value;
         const destination = document.getElementById("destination").value.trim();
         const departure = document.getElementById("departureDate").value;
@@ -267,12 +320,12 @@ function setupExeatForm(currentUser) {
     });
 }
 
-function setupExeatTypeSelect() {
-    const wrapper = document.getElementById("exeatTypeSelect");
-    const select = document.getElementById("exeatType");
-    const trigger = document.getElementById("exeatTypeTrigger");
-    const value = document.getElementById("exeatTypeValue");
-    const options = document.getElementById("exeatTypeOptions");
+function setupCustomSelect(selectId, allowOpenAbove = true) {
+    const wrapper = document.getElementById(`${selectId}Select`);
+    const select = document.getElementById(selectId);
+    const trigger = document.getElementById(`${selectId}Trigger`);
+    const value = document.getElementById(`${selectId}Value`);
+    const options = document.getElementById(`${selectId}Options`);
     if (!wrapper || !select || !trigger || !value || !options) {
         return;
     }
@@ -307,7 +360,7 @@ function setupExeatTypeSelect() {
         const viewportBottom = viewportTop + (viewport?.height || window.innerHeight);
         const spaceBelow = viewportBottom - triggerBounds.bottom;
         const spaceAbove = triggerBounds.top - viewportTop;
-        const openAbove = spaceBelow < menuHeight && spaceAbove > spaceBelow;
+        const openAbove = allowOpenAbove && spaceBelow < menuHeight && spaceAbove > spaceBelow;
         const availableSpace = Math.max(0, (openAbove ? spaceAbove : spaceBelow) - 12);
 
         wrapper.classList.toggle("custom-select--open-up", openAbove);
@@ -435,6 +488,7 @@ function normalizeExeat(exeat) {
         id: exeat._id,
         type: typeLabels[exeat.exeatType] || exeat.exeatType,
         destination: exeat.destination,
+        hostel: exeat.hostel || "",
         departure: exeat.departureDate,
         returnDate: exeat.returnDate,
         reason: exeat.reason,
@@ -465,7 +519,7 @@ function displayRecentRequests(requests) {
     if (requests.length === 0) {
         recentRequests.innerHTML = 
         `<tr>
-            <td colspan="5" style="text-align:center;">
+            <td colspan="6" style="text-align:center;">
                 No exeat requests found.
             </td>
         </tr>`;
@@ -485,6 +539,9 @@ function displayRecentRequests(requests) {
             ${escapeHTML(request.destination)}
         </td>
         <td>
+            ${escapeHTML(request.hostel || "—")}
+        </td>
+        <td>
             ${formatDate(request.departure)}
         </td>
         <td>
@@ -501,7 +558,8 @@ function displayRecentRequests(requests) {
 // REQUEST HISTORY 
 async function setupRequestsPage(currentUser) {
     const allRequests = document.getElementById("allRequests");
-    if (!allRequests) {
+    const approvedExeatList = document.getElementById("approvedExeatList");
+    if (!allRequests || !approvedExeatList) {
         return;
     }
 
@@ -513,10 +571,28 @@ async function setupRequestsPage(currentUser) {
     try {
         const requests = (await request("/exeats")).map(normalizeExeat);
         displayRequestHistory(requests);
+        displayApprovedExeats(requests);
     } catch (error) {
         console.error("Could not load request history:", error);
         showMessage(error.message || "Unable to load your request history.", "error");
     }
+
+    approvedExeatList.addEventListener("click", async function (event) {
+        const button = event.target.closest("[data-exeat-slip-id]");
+        if (!button) {
+            return;
+        }
+
+        button.disabled = true;
+        try {
+            await downloadExeatSlip(button.dataset.exeatSlipId);
+        } catch (error) {
+            console.error("Could not download approved exeat slip:", error);
+            showMessage(error.message || "Unable to download the exeat slip.", "error");
+        } finally {
+            button.disabled = false;
+        }
+    });
 }
 
 function displayRequestHistory(requests) {
@@ -536,7 +612,7 @@ function displayRequestHistory(requests) {
     if (requests.length === 0) {
         allRequests.innerHTML = 
         `<tr>
-            <td colspan="6" style="text-align:center;">
+            <td colspan="${hasAdminComments ? 8 : 7}" style="text-align:center;">
                 No request history found.
             </td>
         </tr>`;
@@ -554,6 +630,9 @@ function displayRequestHistory(requests) {
             ${escapeHTML(request.destination)}
         </td>
         <td>
+            ${escapeHTML(request.hostel || "—")}
+        </td>
+        <td>
             ${formatDate(request.departure)}
         </td>
         <td>
@@ -569,6 +648,35 @@ function displayRequestHistory(requests) {
 
         allRequests.appendChild(row);
     });
+}
+
+function displayApprovedExeats(requests) {
+    const approvedExeatList = document.getElementById("approvedExeatList");
+    if (!approvedExeatList) {
+        return;
+    }
+
+    const approvedRequests = requests.filter((request) => request.status === "Approved");
+    if (approvedRequests.length === 0) {
+        approvedExeatList.innerHTML = '<p class="approved-exeats-empty">You have no approved exeats yet.</p>';
+        return;
+    }
+
+    approvedExeatList.innerHTML = approvedRequests
+        .sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt))
+        .map((request) => `
+            <article class="approved-exeat-card">
+                <div class="approved-exeat-details">
+                    <h3>${escapeHTML(request.type)} to ${escapeHTML(request.destination)}</h3>
+                    <p>${formatDate(request.departure)} - ${formatDate(request.returnDate)}</p>
+                    <p>${escapeHTML(request.hostel || "—")}</p>
+                </div>
+                <button type="button" class="btn approved-exeat-download" data-exeat-slip-id="${escapeHTML(request.id)}"
+                    aria-label="Download approved slip for ${escapeHTML(request.type)} to ${escapeHTML(request.destination)}">
+                    Download slip
+                </button>
+            </article>
+        `).join("");
 }
 
 //SETTINGS

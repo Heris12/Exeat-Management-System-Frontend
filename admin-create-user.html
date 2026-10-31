@@ -32,7 +32,7 @@
             <div class="top-bar">
                 <div>
                     <h1>Create User</h1>
-                    <p>Create a student or admin account.</p>
+                    <p>Create student, hostel warden, security, or admin accounts.</p>
                 </div>
                 <div class="admin-badge">
                     <i class="fa-solid fa-user-shield" aria-hidden="true"></i>
@@ -50,6 +50,8 @@
                             <span class="custom-select-label" id="roleLabel">Account type</span>
                             <select id="role" name="role" required hidden aria-hidden="true" tabindex="-1">
                                 <option value="student">Student</option>
+                                <option value="portal">Hostel Warden Portal</option>
+                                <option value="security">Security</option>
                                 <option value="admin">Admin</option>
                             </select>
                             <button class="custom-select-trigger" id="roleTrigger" type="button"
@@ -62,6 +64,10 @@
                                 aria-labelledby="roleLabel" hidden>
                                 <div class="custom-select-option" id="roleOptionStudent" role="option"
                                     tabindex="-1" data-value="student" aria-selected="true">Student</div>
+                                <div class="custom-select-option" id="roleOptionWarden" role="option"
+                                    tabindex="-1" data-value="portal" aria-selected="false">Hostel Warden Portal</div>
+                                <div class="custom-select-option" id="roleOptionSecurity" role="option"
+                                    tabindex="-1" data-value="security" aria-selected="false">Security</div>
                                 <div class="custom-select-option" id="roleOptionAdmin" role="option"
                                     tabindex="-1" data-value="admin" aria-selected="false">Admin</div>
                             </div>
@@ -77,6 +83,50 @@
                             <input type="text" id="department" name="department" required>
                         </div>
 
+                        <div id="hostelFields">
+                            <div class="custom-select" id="hostelSelect">
+                                <span class="custom-select-label" id="hostelLabel">Assigned hostel hall</span>
+                                <select id="hostel" name="hostel" hidden aria-hidden="true" tabindex="-1">
+                                    <option value="">Select hostel hall</option>
+                                    <option value="Hall 1">Hall 1</option>
+                                    <option value="Hall 2">Hall 2</option>
+                                    <option value="Hall 3">Hall 3</option>
+                                    <option value="Hall 4">Hall 4</option>
+                                    <option value="Hall 5">Hall 5</option>
+                                    <option value="Hall 6">Hall 6</option>
+                                    <option value="Hall 7">Hall 7</option>
+                                    <option value="Hall 8">Hall 8</option>
+                                </select>
+                                <button class="custom-select-trigger" id="hostelTrigger" type="button"
+                                    aria-haspopup="listbox" aria-expanded="false" aria-controls="hostelOptions"
+                                    aria-labelledby="hostelLabel hostelValue" aria-required="true">
+                                    <span id="hostelValue">Select hostel hall</span>
+                                    <span class="custom-select-caret" aria-hidden="true"></span>
+                                </button>
+                                <div class="custom-select-options" id="hostelOptions" role="listbox"
+                                    aria-labelledby="hostelLabel" hidden>
+                                    <div class="custom-select-option" role="option" tabindex="-1"
+                                        data-value="" aria-selected="true">Select hostel hall</div>
+                                    <div class="custom-select-option" role="option" tabindex="-1"
+                                        data-value="Hall 1" aria-selected="false">Hall 1</div>
+                                    <div class="custom-select-option" role="option" tabindex="-1"
+                                        data-value="Hall 2" aria-selected="false">Hall 2</div>
+                                    <div class="custom-select-option" role="option" tabindex="-1"
+                                        data-value="Hall 3" aria-selected="false">Hall 3</div>
+                                    <div class="custom-select-option" role="option" tabindex="-1"
+                                        data-value="Hall 4" aria-selected="false">Hall 4</div>
+                                    <div class="custom-select-option" role="option" tabindex="-1"
+                                        data-value="Hall 5" aria-selected="false">Hall 5</div>
+                                    <div class="custom-select-option" role="option" tabindex="-1"
+                                        data-value="Hall 6" aria-selected="false">Hall 6</div>
+                                    <div class="custom-select-option" role="option" tabindex="-1"
+                                        data-value="Hall 7" aria-selected="false">Hall 7</div>
+                                    <div class="custom-select-option" role="option" tabindex="-1"
+                                        data-value="Hall 8" aria-selected="false">Hall 8</div>
+                                </div>
+                            </div>
+                        </div>
+
                         <label for="email">Email address</label>
                         <input type="email" id="email" name="email" autocomplete="email" required>
                         <label for="password">Temporary password</label>
@@ -88,6 +138,6 @@
             </section>
         </main>
     </div>
-    <script type="module" src="javascript/admin-create-user.js?v=20261021-1"></script>
+    <script type="module" src="javascript/admin-create-user.js?v=20261025-hostel-select"></script>
 </body>
 </html>

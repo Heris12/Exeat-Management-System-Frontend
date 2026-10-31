@@ -31,13 +31,14 @@ async function verifyAdminAccess() {
     }
 }
 
-function setupResponsiveStatusFilter(select) {
+function setupResponsiveFilter(selectId, openDown = false) {
+    const select = document.getElementById(selectId);
     if (!select) return;
 
-    const wrapper = document.getElementById("statusFilterSelect");
-    const trigger = document.getElementById("statusFilterTrigger");
-    const value = document.getElementById("statusFilterValue");
-    const options = document.getElementById("statusFilterOptions");
+    const wrapper = document.getElementById(`${selectId}Select`);
+    const trigger = document.getElementById(`${selectId}Trigger`);
+    const value = document.getElementById(`${selectId}Value`);
+    const options = document.getElementById(`${selectId}Options`);
     if (!wrapper || !trigger || !value || !options) return;
 
     const optionItems = [...options.querySelectorAll('[role="option"]')];
@@ -67,7 +68,7 @@ function setupResponsiveStatusFilter(select) {
         const viewportBottom = viewportTop + (viewport?.height || window.innerHeight);
         const spaceBelow = viewportBottom - bounds.bottom;
         const spaceAbove = bounds.top - viewportTop;
-        const openAbove = spaceBelow < options.scrollHeight && spaceAbove > spaceBelow;
+        const openAbove = !openDown && spaceBelow < options.scrollHeight && spaceAbove > spaceBelow;
         const availableSpace = Math.max(0, (openAbove ? spaceAbove : spaceBelow) - 12);
 
         wrapper.classList.toggle("custom-select--open-up", openAbove);
@@ -158,12 +159,16 @@ async function setupAdminDashboard(currentUser) {
     const elements = {
         adminName: document.getElementById("adminName"),
         studentsCount: document.getElementById("studentsCount"),
+        wardensCount: document.getElementById("wardensCount"),
+        securityCount: document.getElementById("securityCount"),
         totalCount: document.getElementById("totalCount"),
         pendingCount: document.getElementById("pendingCount"),
         approvedCount: document.getElementById("approvedCount"),
         rejectedCount: document.getElementById("rejectedCount"),
         searchInput: document.getElementById("searchInput"),
+        studentSearchInput: document.getElementById("studentSearchInput"),
         statusFilter: document.getElementById("statusFilter"),
+        hostelFilter: document.getElementById("hostelFilter"),
         clearExeatsBtn: document.getElementById("clearExeatsBtn"),
         deleteConfirmModal: document.getElementById("deleteConfirmModal"),
         deleteConfirmDialog: document.querySelector("#deleteConfirmModal [role='alertdialog']"),
@@ -178,7 +183,8 @@ async function setupAdminDashboard(currentUser) {
         confirmReview: document.getElementById("confirmReview"),
         toast: document.getElementById("toast")
     };
-    setupResponsiveStatusFilter(elements.statusFilter);
+    setupResponsiveFilter("statusFilter", true);
+    setupResponsiveFilter("hostelFilter", true);
     
     let users;
     let requests;
@@ -230,6 +236,8 @@ async function setupAdminDashboard(currentUser) {
 
         const counts = {
             studentsCount: dashboardStats.students,
+            wardensCount: dashboardStats.wardens,
+            securityCount: dashboardStats.security,
             totalCount: dashboardStats.totalRequests,
             pendingCount: dashboardStats.pending,
             approvedCount: dashboardStats.approved,
@@ -252,16 +260,36 @@ async function setupAdminDashboard(currentUser) {
     function renderStudents() {
         studentsTable.replaceChildren();
         if (users.length === 0) {
-            appendEmptyRow(studentsTable, 5, "No registered students found.");
+            appendEmptyRow(studentsTable, 6, "No registered students found.");
             return;
         }
 
-        users.forEach(function (user) {
+        const query = elements.studentSearchInput
+            ? elements.studentSearchInput.value.trim().toLowerCase()
+            : "";
+        const visibleStudents = users.filter(function (user) {
+            return [
+                user.fullName,
+                user.matricNumber,
+                user.department,
+                user.email,
+                user.hostel
+            ].some(function (value) {
+                return String(value || "").toLowerCase().includes(query);
+            });
+        });
+        if (visibleStudents.length === 0) {
+            appendEmptyRow(studentsTable, 6, "No students match your search.");
+            return;
+        }
+
+        visibleStudents.forEach(function (user) {
             const row = document.createElement("tr");
             appendTextCell(row, user.fullName);
             appendTextCell(row, user.matricNumber);
             appendTextCell(row, user.department);
             appendTextCell(row, user.email);
+            appendTextCell(row, user.hostel || "Not assigned");
             appendTextCell(row, formatDate(user.createdAt));
             studentsTable.appendChild(row);
         });
@@ -274,23 +302,29 @@ async function setupAdminDashboard(currentUser) {
         const selectedStatus = elements.statusFilter
             ? elements.statusFilter.value
             : "All";
+        const selectedHostel = elements.hostelFilter
+            ? elements.hostelFilter.value
+            : "All";
         const visibleRequests = requests.filter(function (request) {
             const matchesStatus = selectedStatus === "All" ||
                 request.status === selectedStatus;
+            const matchesHostel = selectedHostel === "All" ||
+                request.hostel === selectedHostel;
             const searchableText = [
                 request.studentName,
                 request.matricNumber,
                 request.type,
                 request.destination,
+                request.hostel,
                 request.reason
             ].join(" ").toLowerCase();
 
-            return matchesStatus && searchableText.includes(query);
+            return matchesStatus && matchesHostel && searchableText.includes(query);
         });
 
         requestsTable.replaceChildren();
         if (visibleRequests.length === 0) {
-            appendEmptyRow(requestsTable, 9, "No matching exeat requests found.");
+            appendEmptyRow(requestsTable, 10, "No matching exeat requests found.");
             return;
         }
 
@@ -300,6 +334,7 @@ async function setupAdminDashboard(currentUser) {
             appendTextCell(row, request.matricNumber);
             appendTextCell(row, request.type);
             appendTextCell(row, request.destination);
+            appendTextCell(row, request.hostel || "—");
             appendTextCell(row, formatDate(request.departure));
             appendTextCell(row, formatDate(request.returnDate));
             appendTextCell(row, request.reason);
@@ -502,8 +537,14 @@ async function setupAdminDashboard(currentUser) {
     if (elements.searchInput) {
         elements.searchInput.addEventListener("input", renderRequests);
     }
+    if (elements.studentSearchInput) {
+        elements.studentSearchInput.addEventListener("input", renderStudents);
+    }
     if (elements.statusFilter) {
         elements.statusFilter.addEventListener("change", renderRequests);
+    }
+    if (elements.hostelFilter) {
+        elements.hostelFilter.addEventListener("change", renderRequests);
     }
     if (elements.clearExeatsBtn) {
         elements.clearExeatsBtn.addEventListener("click", clearAllExeats);
@@ -631,6 +672,7 @@ function normalizeAdminExeat(exeat) {
         matricNumber: student.matriculationNumber,
         type: typeLabels[exeat?.exeatType] || exeat?.exeatType || "Exeat",
         destination: exeat?.destination || "",
+        hostel: exeat?.hostel || "",
         departure: String(exeat?.departureDate || "").slice(0, 10),
         returnDate: String(exeat?.returnDate || "").slice(0, 10),
         reason: exeat?.reason || "",

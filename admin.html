@@ -53,6 +53,18 @@
                 </div>
 
                 <div class="stat-card">
+                    <i class="fa-solid fa-user-shield" aria-hidden="true"></i>
+                    <h3 id="wardensCount">0</h3>
+                    <p>Total Wardens</p>
+                </div>
+
+                <div class="stat-card">
+                    <i class="fa-solid fa-person-military-pointing" aria-hidden="true"></i>
+                    <h3 id="securityCount">0</h3>
+                    <p>Security Staff</p>
+                </div>
+
+                <div class="stat-card">
                     <i class="fa-solid fa-file-circle-question"></i>
                     <h3 id="totalCount">0</h3>
                     <p>Total Requests</p>
@@ -108,6 +120,46 @@
                                     data-value="Rejected" aria-selected="false">Rejected</div>
                             </div>
                         </div>
+                        <div class="custom-select admin-status-select" id="hostelFilterSelect">
+                            <select id="hostelFilter" hidden aria-hidden="true" tabindex="-1">
+                                <option value="All">All Hostels</option>
+                                <option value="Hall 1">Hall 1</option>
+                                <option value="Hall 2">Hall 2</option>
+                                <option value="Hall 3">Hall 3</option>
+                                <option value="Hall 4">Hall 4</option>
+                                <option value="Hall 5">Hall 5</option>
+                                <option value="Hall 6">Hall 6</option>
+                                <option value="Hall 7">Hall 7</option>
+                                <option value="Hall 8">Hall 8</option>
+                            </select>
+                            <button class="custom-select-trigger" id="hostelFilterTrigger" type="button"
+                                aria-haspopup="listbox" aria-expanded="false" aria-controls="hostelFilterOptions"
+                                aria-label="Filter requests by hostel hall">
+                                <span id="hostelFilterValue">All Hostels</span>
+                                <span class="custom-select-caret" aria-hidden="true"></span>
+                            </button>
+                            <div class="custom-select-options" id="hostelFilterOptions" role="listbox"
+                                aria-label="Hostel hall" hidden>
+                                <div class="custom-select-option" role="option" tabindex="-1"
+                                    data-value="All" aria-selected="true">All Hostels</div>
+                                <div class="custom-select-option" role="option" tabindex="-1"
+                                    data-value="Hall 1" aria-selected="false">Hall 1</div>
+                                <div class="custom-select-option" role="option" tabindex="-1"
+                                    data-value="Hall 2" aria-selected="false">Hall 2</div>
+                                <div class="custom-select-option" role="option" tabindex="-1"
+                                    data-value="Hall 3" aria-selected="false">Hall 3</div>
+                                <div class="custom-select-option" role="option" tabindex="-1"
+                                    data-value="Hall 4" aria-selected="false">Hall 4</div>
+                                <div class="custom-select-option" role="option" tabindex="-1"
+                                    data-value="Hall 5" aria-selected="false">Hall 5</div>
+                                <div class="custom-select-option" role="option" tabindex="-1"
+                                    data-value="Hall 6" aria-selected="false">Hall 6</div>
+                                <div class="custom-select-option" role="option" tabindex="-1"
+                                    data-value="Hall 7" aria-selected="false">Hall 7</div>
+                                <div class="custom-select-option" role="option" tabindex="-1"
+                                    data-value="Hall 8" aria-selected="false">Hall 8</div>
+                            </div>
+                        </div>
                         <button type="button" id="clearExeatsBtn" class="btn reject admin-delete-button">
                             <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
                             <span>Delete All Requests</span>
@@ -123,6 +175,7 @@
                                 <th>Matric No.</th>
                                 <th>Type</th>
                                 <th>Destination</th>
+                                <th>Hostel Hall</th>
                                 <th>Departure</th>
                                 <th>Return</th>
                                 <th>Reason</th>
@@ -132,7 +185,7 @@
                         </thead>
                         <tbody id="requestsTable">
                         <tr>
-                            <td colspan="9" class="loading">Loading requests...</td>
+                            <td colspan="10" class="loading">Loading requests...</td>
                         </tr>
                         </tbody>
                     </table>
@@ -142,6 +195,11 @@
             <section class="panel" id="students">
                 <div class="panel-header">
                     <h2>Registered Students</h2>
+                    <div class="controls admin-student-controls">
+                        <input class="admin-search-input" type="search" id="studentSearchInput"
+                            placeholder="Search name, matric number, department, email or hostel"
+                            aria-label="Search registered students">
+                    </div>
                 </div>
 
                 <div class="table-wrap">
@@ -152,12 +210,13 @@
                                 <th>Matric Number</th>
                                 <th>Department</th>
                                 <th>Email</th>
+                                <th>Hostel Roster</th>
                                 <th>Registered</th>
                             </tr>
                         </thead>
                         <tbody id="studentsTable">
                             <tr>
-                                <td colspan="5" class="loading">Loading students...</td>
+                                <td colspan="6" class="loading">Loading students...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -193,6 +252,6 @@
         </div>
     </div>
     <div class="toast" id="toast"></div>
-    <script type="module" src="javascript/admin.js?v=20261022-1"></script>
+    <script type="module" src="javascript/admin.js?v=20261025-5"></script>
 </body>
 </html>

@@ -41,26 +41,48 @@ function setupCreateUserForm() {
     const roleTrigger = document.getElementById("roleTrigger");
     const roleValue = document.getElementById("roleValue");
     const roleOptions = document.getElementById("roleOptions");
-    if (!form || !role || !roleSelect || !roleTrigger || !roleValue || !roleOptions) {
+    const hostelSelect = document.getElementById("hostelSelect");
+    const hostelTrigger = document.getElementById("hostelTrigger");
+    const hostelValue = document.getElementById("hostelValue");
+    const hostelOptions = document.getElementById("hostelOptions");
+    if (!form || !role || !roleSelect || !roleTrigger || !roleValue || !roleOptions ||
+        !hostelSelect || !hostelTrigger || !hostelValue || !hostelOptions) {
         return;
     }
     const roleOptionItems = [...roleOptions.querySelectorAll('[role="option"]')];
-    if (roleOptionItems.length === 0) {
+    const hostelOptionItems = [...hostelOptions.querySelectorAll('[role="option"]')];
+    if (roleOptionItems.length === 0 || hostelOptionItems.length === 0) {
         return;
     }
     const studentFields = document.getElementById("studentFields");
+    const hostelFields = document.getElementById("hostelFields");
+    const wardenHostelHelp = document.getElementById("wardenHostelHelp");
+    const hostel = document.getElementById("hostel");
     const matriculationNumber = document.getElementById("matriculationNumber");
     const department = document.getElementById("department");
     const submitButton = document.getElementById("createUserButton");
     const message = document.getElementById("formMessage");
-    if (!studentFields || !matriculationNumber || !department || !submitButton || !message) {
+    if (!studentFields || !hostelFields || !hostel || !matriculationNumber || !department || !submitButton || !message) {
         return;
     }
 
     function updateRoleFields() {
         const isStudent = role.value === "student";
+        const isWardenPortal = role.value === "portal";
+        const requiresHostel = role.value === "student" || isWardenPortal;
         if (studentFields) {
             studentFields.hidden = !isStudent;
+        }
+        hostelFields.hidden = !requiresHostel;
+        if (wardenHostelHelp) {
+            wardenHostelHelp.hidden = !isWardenPortal;
+        }
+        hostel.required = false;
+        hostel.disabled = !requiresHostel;
+        hostelTrigger.disabled = !requiresHostel;
+        if (!requiresHostel) {
+            closeHostelOptions();
+            hostelTrigger.removeAttribute("aria-invalid");
         }
         if (matriculationNumber) {
             matriculationNumber.required = isStudent;
@@ -77,6 +99,14 @@ function setupCreateUserForm() {
         roleValue.textContent = selectedOption.textContent;
         roleOptionItems.forEach((option) => {
             option.setAttribute("aria-selected", String(option === selectedOption));
+        });
+    }
+
+    function syncHostelSelector() {
+        const selectedOption = [...hostel.options].find((option) => option.value === hostel.value);
+        hostelValue.textContent = selectedOption ? selectedOption.textContent : "";
+        hostelOptionItems.forEach((option) => {
+            option.setAttribute("aria-selected", String(option.dataset.value === hostel.value));
         });
     }
 
@@ -110,6 +140,34 @@ function setupCreateUserForm() {
         roleOptions.querySelector('[aria-selected="true"]').focus();
     }
 
+    function closeHostelOptions(returnFocus = false) {
+        hostelOptions.hidden = true;
+        hostelTrigger.setAttribute("aria-expanded", "false");
+        hostelSelect.classList.remove("custom-select--open-up");
+        hostelSelect.style.removeProperty("--custom-select-max-height");
+        if (returnFocus) hostelTrigger.focus();
+    }
+
+    function positionHostelOptions() {
+        hostelOptions.hidden = false;
+        const triggerBounds = hostelTrigger.getBoundingClientRect();
+        const viewport = window.visualViewport;
+        const viewportTop = viewport?.offsetTop || 0;
+        const viewportBottom = viewportTop + (viewport?.height || window.innerHeight);
+        const spaceBelow = viewportBottom - triggerBounds.bottom;
+        const availableSpace = Math.max(0, spaceBelow - 12);
+
+        hostelSelect.classList.remove("custom-select--open-up");
+        hostelSelect.style.setProperty("--custom-select-max-height", `${availableSpace}px`);
+        hostelTrigger.setAttribute("aria-expanded", "true");
+    }
+
+    function openHostelOptions() {
+        positionHostelOptions();
+        const selectedOption = hostelOptions.querySelector('[aria-selected="true"]');
+        if (selectedOption) selectedOption.focus();
+    }
+
     role.addEventListener("change", () => {
         syncRoleSelector();
         updateRoleFields();
@@ -125,6 +183,49 @@ function setupCreateUserForm() {
         role.value = option.dataset.value;
         role.dispatchEvent(new Event("change", { bubbles: true }));
         closeRoleOptions(true);
+    });
+    hostel.addEventListener("change", syncHostelSelector);
+    hostelTrigger.addEventListener("click", () => {
+        if (hostelOptions.hidden) openHostelOptions();
+        else closeHostelOptions();
+    });
+    hostelOptions.addEventListener("click", (event) => {
+        const option = event.target.closest('[role="option"]');
+        if (!option) return;
+
+        hostel.value = option.dataset.value;
+        hostel.dispatchEvent(new Event("change", { bubbles: true }));
+        hostelTrigger.removeAttribute("aria-invalid");
+        closeHostelOptions(true);
+    });
+    hostelTrigger.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowDown" || event.key === "ArrowUp" || event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            if (hostelOptions.hidden) openHostelOptions();
+        }
+    });
+    hostelOptions.addEventListener("keydown", (event) => {
+        const optionIndex = hostelOptionItems.indexOf(document.activeElement);
+        let nextIndex = optionIndex;
+
+        if (event.key === "ArrowDown") nextIndex = (optionIndex + 1) % hostelOptionItems.length;
+        else if (event.key === "ArrowUp") nextIndex = (optionIndex - 1 + hostelOptionItems.length) % hostelOptionItems.length;
+        else if (event.key === "Home") nextIndex = 0;
+        else if (event.key === "End") nextIndex = hostelOptionItems.length - 1;
+        else if (event.key === "Escape") {
+            event.preventDefault();
+            closeHostelOptions(true);
+            return;
+        } else if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            document.activeElement.click();
+            return;
+        } else {
+            return;
+        }
+
+        event.preventDefault();
+        hostelOptionItems[nextIndex].focus();
     });
     roleTrigger.addEventListener("keydown", (event) => {
         if (event.key === "ArrowDown" || event.key === "ArrowUp" || event.key === "Enter" || event.key === " ") {
@@ -157,28 +258,53 @@ function setupCreateUserForm() {
     });
     document.addEventListener("click", (event) => {
         if (!roleSelect.contains(event.target)) closeRoleOptions();
+        if (!hostelSelect.contains(event.target)) closeHostelOptions();
     });
     roleSelect.addEventListener("focusout", (event) => {
         if (!roleSelect.contains(event.relatedTarget)) closeRoleOptions();
+    });
+    hostelSelect.addEventListener("focusout", (event) => {
+        if (!hostelSelect.contains(event.relatedTarget)) closeHostelOptions();
     });
     function repositionOpenRoleOptions() {
         if (!roleOptions.hidden) positionRoleOptions();
     }
 
+    function repositionOpenHostelOptions() {
+        if (!hostelOptions.hidden) positionHostelOptions();
+    }
+
     window.addEventListener("resize", repositionOpenRoleOptions);
     window.addEventListener("scroll", repositionOpenRoleOptions, true);
+    window.addEventListener("resize", repositionOpenHostelOptions);
+    window.addEventListener("scroll", repositionOpenHostelOptions, true);
     window.visualViewport?.addEventListener("resize", repositionOpenRoleOptions);
     window.visualViewport?.addEventListener("scroll", repositionOpenRoleOptions);
+    window.visualViewport?.addEventListener("resize", repositionOpenHostelOptions);
+    window.visualViewport?.addEventListener("scroll", repositionOpenHostelOptions);
     form.addEventListener("reset", () => {
-        window.setTimeout(syncRoleSelector);
+        window.setTimeout(() => {
+            syncRoleSelector();
+            syncHostelSelector();
+            hostelTrigger.removeAttribute("aria-invalid");
+        });
     });
     syncRoleSelector();
+    syncHostelSelector();
     updateRoleFields();
 
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
         message.textContent = "";
         message.className = "";
+        if ((role.value === "student" || role.value === "portal") && !hostel.value) {
+            message.textContent = "Please select an assigned hostel hall.";
+            message.className = "error-message";
+            hostelTrigger.setAttribute("aria-invalid", "true");
+            hostelTrigger.focus();
+            return;
+        }
+        hostelTrigger.removeAttribute("aria-invalid");
         submitButton.disabled = true;
 
         const body = {
@@ -187,6 +313,9 @@ function setupCreateUserForm() {
             password: document.getElementById("password").value,
             role: role.value
         };
+        if (role.value === "student" || role.value === "portal") {
+            body.hostel = hostel.value;
+        }
         if (role.value === "student") {
             body.matriculationNumber = matriculationNumber.value.trim();
             body.department = department.value.trim();
