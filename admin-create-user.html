@@ -6,7 +6,7 @@
     <meta name="robots" content="noindex, nofollow, noarchive">
     <title>School Exeat System || Create User</title>
     <link rel="icon" type="image/png" href="eui%20logo.png">
-    <link rel="stylesheet" href="css/style.css?v=20261101-exeat-slip">
+    <link rel="stylesheet" href="css/style.css?v=20261101-faculty-select">
     <script src="javascript/preloader.js" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css">
 </head>
@@ -89,18 +89,33 @@
                             <input type="text" id="matriculationNumber" name="matriculationNumber" required>
                             <label for="department">Department</label>
                             <input type="text" id="department" name="department" required>
-                            <label for="faculty">Faculty</label>
-                            <select id="faculty" name="faculty" required>
-                                <option value="">Select faculty</option>
-                                <option value="Faculty of Science">Faculty of Science</option>
-                                <option value="Faculty of Arts">Faculty of Arts</option>
-                                <option value="Faculty of Engineering">Faculty of Engineering</option>
-                                <option value="Faculty of Law">Faculty of Law</option>
-                            </select>
-                            <label for="level">Level</label>
-                            <input type="text" id="level" name="level" placeholder="e.g. 200 Level">
-                            <label for="phoneNumber">Phone number</label>
-                            <input type="tel" id="phoneNumber" name="phoneNumber" autocomplete="tel">
+                            <div class="custom-select" id="facultySelect">
+                                <span class="custom-select-label" id="facultyLabel">Faculty</span>
+                                <select id="faculty" name="faculty" hidden aria-hidden="true" tabindex="-1">
+                                    <option value="">Select faculty</option>
+                                    <option value="Faculty of Science">Faculty of Science</option>
+                                    <option value="Faculty of Arts">Faculty of Arts</option>
+                                    <option value="Faculty of Engineering">Faculty of Engineering</option>
+                                    <option value="Faculty of Law">Faculty of Law</option>
+                                </select>
+                                <button class="custom-select-trigger" id="facultyTrigger" type="button"
+                                    aria-haspopup="listbox" aria-expanded="false" aria-controls="facultyOptions"
+                                    aria-labelledby="facultyLabel facultyValue" aria-required="true">
+                                    <span id="facultyValue">Select faculty</span>
+                                    <span class="custom-select-caret" aria-hidden="true"></span>
+                                </button>
+                                <div class="custom-select-options" id="facultyOptions" role="listbox"
+                                    aria-labelledby="facultyLabel" hidden>
+                                    <div class="custom-select-option" role="option" tabindex="-1"
+                                        data-value="Faculty of Science" aria-selected="false">Faculty of Science</div>
+                                    <div class="custom-select-option" role="option" tabindex="-1"
+                                        data-value="Faculty of Arts" aria-selected="false">Faculty of Arts</div>
+                                    <div class="custom-select-option" role="option" tabindex="-1"
+                                        data-value="Faculty of Engineering" aria-selected="false">Faculty of Engineering</div>
+                                    <div class="custom-select-option" role="option" tabindex="-1"
+                                        data-value="Faculty of Law" aria-selected="false">Faculty of Law</div>
+                                </div>
+                            </div>
                         </div>
 
                         <div id="hostelFields">
@@ -158,6 +173,6 @@
             </section>
         </main>
     </div>
-    <script type="module" src="javascript/admin-create-user.js?v=20261101-faculty-level"></script>
+    <script type="module" src="javascript/admin-create-user.js?v=20261101-admin-hostel-assignment"></script>
 </body>
 </html>

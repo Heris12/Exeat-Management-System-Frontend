@@ -261,7 +261,7 @@ async function setupAdminDashboard(currentUser) {
     function renderStudents() {
         studentsTable.replaceChildren();
         if (users.length === 0) {
-            appendEmptyRow(studentsTable, 8, "No registered students found.");
+            appendEmptyRow(studentsTable, 6, "No registered students found.");
             return;
         }
 
@@ -274,15 +274,13 @@ async function setupAdminDashboard(currentUser) {
                 user.matricNumber,
                 user.department,
                 user.faculty,
-                user.level,
-                user.email,
-                user.hostel
+                user.email
             ].some(function (value) {
                 return String(value || "").toLowerCase().includes(query);
             });
         });
         if (visibleStudents.length === 0) {
-            appendEmptyRow(studentsTable, 8, "No students match your search.");
+            appendEmptyRow(studentsTable, 6, "No students match your search.");
             return;
         }
 
@@ -292,9 +290,7 @@ async function setupAdminDashboard(currentUser) {
             appendTextCell(row, user.matricNumber);
             appendTextCell(row, user.department);
             appendTextCell(row, user.faculty || "Not specified");
-            appendTextCell(row, user.level || "Not specified");
             appendTextCell(row, user.email);
-            appendTextCell(row, user.hostel || "Not assigned");
             appendTextCell(row, formatDate(user.createdAt));
             studentsTable.appendChild(row);
         });
@@ -318,6 +314,8 @@ async function setupAdminDashboard(currentUser) {
             const searchableText = [
                 request.studentName,
                 request.matricNumber,
+                request.level,
+                request.phoneNumber,
                 request.type,
                 request.destination,
                 request.hostel,
@@ -329,7 +327,7 @@ async function setupAdminDashboard(currentUser) {
 
         requestsTable.replaceChildren();
         if (visibleRequests.length === 0) {
-            appendEmptyRow(requestsTable, 10, "No matching exeat requests found.");
+            appendEmptyRow(requestsTable, 12, "No matching exeat requests found.");
             return;
         }
 
@@ -337,6 +335,8 @@ async function setupAdminDashboard(currentUser) {
             const row = document.createElement("tr");
             appendTextCell(row, request.studentName);
             appendTextCell(row, request.matricNumber);
+            appendTextCell(row, request.level || "—");
+            appendTextCell(row, request.phoneNumber || "—");
             appendTextCell(row, request.type);
             appendTextCell(row, request.destination);
             appendTextCell(row, request.hostel || "—");
@@ -679,6 +679,8 @@ function normalizeAdminExeat(exeat) {
         id: exeat?._id,
         studentName: student.fullName,
         matricNumber: student.matriculationNumber,
+        level: exeat?.level || student.level || "",
+        phoneNumber: exeat?.phoneNumber || student.phoneNumber || "",
         type: typeLabels[exeat?.exeatType] || exeat?.exeatType || "Exeat",
         destination: exeat?.destination || "",
         hostel: exeat?.hostel || "",

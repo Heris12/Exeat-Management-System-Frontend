@@ -197,7 +197,7 @@ function renderRequests() {
         ? hostelRequests
         : hostelRequests.filter((requestItem) => requestItem.status === selectedStatus);
     if (hostelRequests.length === 0) {
-        appendEmptyRow(body, 10, "No exeat requests have been submitted for this hostel.");
+        appendEmptyRow(body, 12, "No exeat requests have been submitted for this hostel.");
         return;
     }
     const visibleRequests = requests.filter((requestItem) => {
@@ -206,6 +206,8 @@ function renderRequests() {
             student.fullName,
             student.matriculationNumber,
             student.department,
+            requestItem.level,
+            requestItem.phoneNumber,
             exeatTypeLabel(requestItem.exeatType),
             requestItem.destination,
             requestItem.reason
@@ -213,7 +215,7 @@ function renderRequests() {
         return searchableText.includes(query);
     });
     if (visibleRequests.length === 0) {
-        appendEmptyRow(body, 10, "No matching exeat requests found.");
+        appendEmptyRow(body, 12, "No matching exeat requests found.");
         return;
     }
 
@@ -222,6 +224,8 @@ function renderRequests() {
         const row = document.createElement("tr");
         appendTextCell(row, student.fullName);
         appendTextCell(row, student.matriculationNumber);
+        appendTextCell(row, requestItem.level || "—");
+        appendTextCell(row, requestItem.phoneNumber || "—");
         appendTextCell(row, exeatTypeLabel(requestItem.exeatType));
         appendTextCell(row, requestItem.destination);
         appendTextCell(row, formatDate(requestItem.departureDate));

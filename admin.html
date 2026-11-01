@@ -181,6 +181,8 @@
                             <tr>
                                 <th>Student</th>
                                 <th>Matric No.</th>
+                                <th>Level</th>
+                                <th>Phone</th>
                                 <th>Type</th>
                                 <th>Destination</th>
                                 <th>Hostel Hall</th>
@@ -193,7 +195,7 @@
                         </thead>
                         <tbody id="requestsTable">
                         <tr>
-                            <td colspan="10" class="loading">Loading requests...</td>
+                            <td colspan="12" class="loading">Loading requests...</td>
                         </tr>
                         </tbody>
                     </table>
@@ -205,7 +207,7 @@
                     <h2>Registered Students</h2>
                     <div class="controls admin-student-controls">
                         <input class="admin-search-input" type="search" id="studentSearchInput"
-                            placeholder="Search name, matric number, department, faculty, level, email or hostel"
+                            placeholder="Search name, matric number, department, faculty or email"
                             aria-label="Search registered students">
                     </div>
                 </div>
@@ -218,15 +220,13 @@
                                 <th>Matric Number</th>
                                 <th>Department</th>
                                 <th>Faculty</th>
-                                <th>Level</th>
                                 <th>Email</th>
-                                <th>Hostel Roster</th>
                                 <th>Registered</th>
                             </tr>
                         </thead>
                         <tbody id="studentsTable">
                             <tr>
-                                <td colspan="8" class="loading">Loading students...</td>
+                                <td colspan="6" class="loading">Loading students...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -262,6 +262,6 @@
         </div>
     </div>
     <div class="toast" id="toast"></div>
-    <script type="module" src="javascript/admin.js?v=20261101-exeat-slip"></script>
+    <script type="module" src="javascript/admin.js?v=20261101-request-student-details"></script>
 </body>
 </html>

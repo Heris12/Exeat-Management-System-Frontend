@@ -275,21 +275,19 @@ function setupExeatForm(currentUser) {
     )};
 
     setupCustomSelect("exeatType");
-    const submitButton = exeatForm.querySelector('button[type="submit"]');
-    if (!currentUser.hostel) {
-        if (submitButton) submitButton.disabled = true;
-        showMessage("Your account has no hostel assigned. Contact the main administrator before requesting an exeat.", "error");
-    }
 
     exeatForm.addEventListener("submit", async function (e) {
         e.preventDefault();
         const type = document.getElementById("exeatType").value;
         const destination = document.getElementById("destination").value.trim();
+        const level = document.getElementById("level").value.trim();
+        const phoneNumber = document.getElementById("phoneNumber").value.trim();
         const departure = document.getElementById("departureDate").value;
         const returnDateValue = document.getElementById("returnDate").value;
         const reason = document.getElementById("reason").value.trim();
 
-        if (!type || !destination || !departure || !returnDateValue || !reason) {
+        if (!type || !destination || !level || !phoneNumber ||
+            !departure || !returnDateValue || !reason) {
             showMessage("Please fill in all fields.", "error");
             return;
         }
@@ -309,6 +307,8 @@ function setupExeatForm(currentUser) {
                 body: JSON.stringify({
                     exeatType: type,
                     destination,
+                    level,
+                    phoneNumber,
                     departureDate: departure,
                     returnDate: returnDateValue,
                     reason
