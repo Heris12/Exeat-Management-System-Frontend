@@ -42,17 +42,24 @@ function setupCreateUserForm() {
     const roleTrigger = document.getElementById("roleTrigger");
     const roleValue = document.getElementById("roleValue");
     const roleOptions = document.getElementById("roleOptions");
+    const facultySelect = document.getElementById("facultySelect");
+    const faculty = document.getElementById("faculty");
+    const facultyTrigger = document.getElementById("facultyTrigger");
+    const facultyValue = document.getElementById("facultyValue");
+    const facultyOptions = document.getElementById("facultyOptions");
     const hostelSelect = document.getElementById("hostelSelect");
     const hostelTrigger = document.getElementById("hostelTrigger");
     const hostelValue = document.getElementById("hostelValue");
     const hostelOptions = document.getElementById("hostelOptions");
     if (!form || !role || !roleSelect || !roleTrigger || !roleValue || !roleOptions ||
+        !facultySelect || !faculty || !facultyTrigger || !facultyValue || !facultyOptions ||
         !hostelSelect || !hostelTrigger || !hostelValue || !hostelOptions) {
         return;
     }
     const roleOptionItems = [...roleOptions.querySelectorAll('[role="option"]')];
+    const facultyOptionItems = [...facultyOptions.querySelectorAll('[role="option"]')];
     const hostelOptionItems = [...hostelOptions.querySelectorAll('[role="option"]')];
-    if (roleOptionItems.length === 0 || hostelOptionItems.length === 0) {
+    if (roleOptionItems.length === 0 || facultyOptionItems.length === 0 || hostelOptionItems.length === 0) {
         return;
     }
     const studentFields = document.getElementById("studentFields");
@@ -61,7 +68,6 @@ function setupCreateUserForm() {
     const hostel = document.getElementById("hostel");
     const matriculationNumber = document.getElementById("matriculationNumber");
     const department = document.getElementById("department");
-    const faculty = document.getElementById("faculty");
     const submitButton = document.getElementById("createUserButton");
     const message = document.getElementById("formMessage");
     if (!studentFields || !hostelFields || !hostel || !matriculationNumber || !department ||
@@ -72,7 +78,7 @@ function setupCreateUserForm() {
     function updateRoleFields() {
         const isStudent = role.value === "student";
         const isWardenPortal = role.value === "portal";
-        const requiresHostel = role.value === "student" || isWardenPortal;
+        const requiresHostel = isStudent || isWardenPortal;
         if (studentFields) {
             studentFields.hidden = !isStudent;
         }
@@ -95,8 +101,13 @@ function setupCreateUserForm() {
             department.required = isStudent;
             department.disabled = !isStudent;
         }
-        faculty.required = isStudent;
+        faculty.required = false;
         faculty.disabled = !isStudent;
+        facultyTrigger.disabled = !isStudent;
+        if (!isStudent) {
+            closeFacultyOptions();
+            facultyTrigger.removeAttribute("aria-invalid");
+        }
     }
 
     function syncRoleSelector() {
@@ -104,6 +115,14 @@ function setupCreateUserForm() {
         roleValue.textContent = selectedOption.textContent;
         roleOptionItems.forEach((option) => {
             option.setAttribute("aria-selected", String(option === selectedOption));
+        });
+    }
+
+    function syncFacultySelector() {
+        const selectedOption = [...faculty.options].find((option) => option.value === faculty.value);
+        facultyValue.textContent = selectedOption ? selectedOption.textContent : "Select faculty";
+        facultyOptionItems.forEach((option) => {
+            option.setAttribute("aria-selected", String(option.dataset.value === faculty.value));
         });
     }
 
@@ -143,6 +162,37 @@ function setupCreateUserForm() {
     function openRoleOptions() {
         positionRoleOptions();
         roleOptions.querySelector('[aria-selected="true"]').focus();
+    }
+
+    function closeFacultyOptions(returnFocus = false) {
+        facultyOptions.hidden = true;
+        facultyTrigger.setAttribute("aria-expanded", "false");
+        facultySelect.classList.remove("custom-select--open-up");
+        facultySelect.style.removeProperty("--custom-select-max-height");
+        if (returnFocus) facultyTrigger.focus();
+    }
+
+    function positionFacultyOptions() {
+        facultyOptions.hidden = false;
+        const triggerBounds = facultyTrigger.getBoundingClientRect();
+        const menuHeight = facultyOptions.scrollHeight;
+        const viewport = window.visualViewport;
+        const viewportTop = viewport?.offsetTop || 0;
+        const viewportBottom = viewportTop + (viewport?.height || window.innerHeight);
+        const spaceBelow = viewportBottom - triggerBounds.bottom;
+        const spaceAbove = triggerBounds.top - viewportTop;
+        const openAbove = spaceBelow < menuHeight && spaceAbove > spaceBelow;
+        const availableSpace = Math.max(0, (openAbove ? spaceAbove : spaceBelow) - 12);
+
+        facultySelect.classList.toggle("custom-select--open-up", openAbove);
+        facultySelect.style.setProperty("--custom-select-max-height", `${availableSpace}px`);
+        facultyTrigger.setAttribute("aria-expanded", "true");
+    }
+
+    function openFacultyOptions() {
+        positionFacultyOptions();
+        const selectedOption = facultyOptions.querySelector('[aria-selected="true"]') || facultyOptionItems[0];
+        if (selectedOption) selectedOption.focus();
     }
 
     function closeHostelOptions(returnFocus = false) {
@@ -188,6 +238,49 @@ function setupCreateUserForm() {
         role.value = option.dataset.value;
         role.dispatchEvent(new Event("change", { bubbles: true }));
         closeRoleOptions(true);
+    });
+    faculty.addEventListener("change", syncFacultySelector);
+    facultyTrigger.addEventListener("click", () => {
+        if (facultyOptions.hidden) openFacultyOptions();
+        else closeFacultyOptions();
+    });
+    facultyOptions.addEventListener("click", (event) => {
+        const option = event.target.closest('[role="option"]');
+        if (!option) return;
+
+        faculty.value = option.dataset.value;
+        faculty.dispatchEvent(new Event("change", { bubbles: true }));
+        facultyTrigger.removeAttribute("aria-invalid");
+        closeFacultyOptions(true);
+    });
+    facultyTrigger.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowDown" || event.key === "ArrowUp" || event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            if (facultyOptions.hidden) openFacultyOptions();
+        }
+    });
+    facultyOptions.addEventListener("keydown", (event) => {
+        const optionIndex = facultyOptionItems.indexOf(document.activeElement);
+        let nextIndex = optionIndex;
+
+        if (event.key === "ArrowDown") nextIndex = (optionIndex + 1) % facultyOptionItems.length;
+        else if (event.key === "ArrowUp") nextIndex = (optionIndex - 1 + facultyOptionItems.length) % facultyOptionItems.length;
+        else if (event.key === "Home") nextIndex = 0;
+        else if (event.key === "End") nextIndex = facultyOptionItems.length - 1;
+        else if (event.key === "Escape") {
+            event.preventDefault();
+            closeFacultyOptions(true);
+            return;
+        } else if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            document.activeElement.click();
+            return;
+        } else {
+            return;
+        }
+
+        event.preventDefault();
+        facultyOptionItems[nextIndex].focus();
     });
     hostel.addEventListener("change", syncHostelSelector);
     hostelTrigger.addEventListener("click", () => {
@@ -263,10 +356,14 @@ function setupCreateUserForm() {
     });
     document.addEventListener("click", (event) => {
         if (!roleSelect.contains(event.target)) closeRoleOptions();
+        if (!facultySelect.contains(event.target)) closeFacultyOptions();
         if (!hostelSelect.contains(event.target)) closeHostelOptions();
     });
     roleSelect.addEventListener("focusout", (event) => {
         if (!roleSelect.contains(event.relatedTarget)) closeRoleOptions();
+    });
+    facultySelect.addEventListener("focusout", (event) => {
+        if (!facultySelect.contains(event.relatedTarget)) closeFacultyOptions();
     });
     hostelSelect.addEventListener("focusout", (event) => {
         if (!hostelSelect.contains(event.relatedTarget)) closeHostelOptions();
@@ -275,26 +372,37 @@ function setupCreateUserForm() {
         if (!roleOptions.hidden) positionRoleOptions();
     }
 
+    function repositionOpenFacultyOptions() {
+        if (!facultyOptions.hidden) positionFacultyOptions();
+    }
+
     function repositionOpenHostelOptions() {
         if (!hostelOptions.hidden) positionHostelOptions();
     }
 
     window.addEventListener("resize", repositionOpenRoleOptions);
     window.addEventListener("scroll", repositionOpenRoleOptions, true);
+    window.addEventListener("resize", repositionOpenFacultyOptions);
+    window.addEventListener("scroll", repositionOpenFacultyOptions, true);
     window.addEventListener("resize", repositionOpenHostelOptions);
     window.addEventListener("scroll", repositionOpenHostelOptions, true);
     window.visualViewport?.addEventListener("resize", repositionOpenRoleOptions);
     window.visualViewport?.addEventListener("scroll", repositionOpenRoleOptions);
+    window.visualViewport?.addEventListener("resize", repositionOpenFacultyOptions);
+    window.visualViewport?.addEventListener("scroll", repositionOpenFacultyOptions);
     window.visualViewport?.addEventListener("resize", repositionOpenHostelOptions);
     window.visualViewport?.addEventListener("scroll", repositionOpenHostelOptions);
     form.addEventListener("reset", () => {
         window.setTimeout(() => {
             syncRoleSelector();
+            syncFacultySelector();
             syncHostelSelector();
+            facultyTrigger.removeAttribute("aria-invalid");
             hostelTrigger.removeAttribute("aria-invalid");
         });
     });
     syncRoleSelector();
+    syncFacultySelector();
     syncHostelSelector();
     updateRoleFields();
 
@@ -309,6 +417,14 @@ function setupCreateUserForm() {
             hostelTrigger.focus();
             return;
         }
+        if (role.value === "student" && !faculty.value) {
+            message.textContent = "Please select a faculty.";
+            message.className = "error-message";
+            facultyTrigger.setAttribute("aria-invalid", "true");
+            facultyTrigger.focus();
+            return;
+        }
+        facultyTrigger.removeAttribute("aria-invalid");
         hostelTrigger.removeAttribute("aria-invalid");
         submitButton.disabled = true;
 
@@ -325,8 +441,6 @@ function setupCreateUserForm() {
             body.matriculationNumber = matriculationNumber.value.trim();
             body.department = department.value.trim();
             body.faculty = faculty.value;
-            body.level = document.getElementById("level").value.trim();
-            body.phoneNumber = document.getElementById("phoneNumber").value.trim();
         }
 
         try {

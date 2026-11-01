@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>School Exeat System || Request-Exeat</title>
     <link rel="icon" type="image/png" href="eui%20logo.png">
-    <link rel="stylesheet" href="css/style.css?v=20261101-exeat-slip">
+    <link rel="stylesheet" href="css/style.css?v=20261101-request-student-details">
     <script src="javascript/preloader.js" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css">
 </head>
@@ -70,6 +70,12 @@
                     <label for="destination">Destination</label>
                     <input type="text" id="destination" placeholder="Where are you going to?" required>
 
+                    <label for="level">Level</label>
+                    <input type="text" id="level" name="level" placeholder="e.g. 200 Level" maxlength="30" required>
+                    <label for="phoneNumber">Phone number</label>
+                    <input type="tel" id="phoneNumber" name="phoneNumber" autocomplete="tel"
+                        placeholder="Enter your phone number" maxlength="30" required>
+
                     <div class="date-fields">
                         <div>
                             <label for="departureDate">Departure Date</label>
@@ -89,6 +95,6 @@
         </main>
     </div>
     
-    <script type="module" src="javascript/scripts.js?v=20261101-exeat-no-times"></script>
+    <script type="module" src="javascript/scripts.js?v=20261101-admin-hostel-assignment"></script>
 </body>
 </html>
