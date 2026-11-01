@@ -1,4 +1,4 @@
-import { request } from "./api.js";
+import { request } from "./api.js?v=20261101-exeat-slip";
 
 const TOKEN_KEY = "token";
 const LOGIN_PAGE = "index.html";

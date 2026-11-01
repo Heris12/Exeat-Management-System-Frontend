@@ -1,4 +1,4 @@
-import { request, downloadExeatSlip } from "./api.js";
+import { request, downloadExeatSlip, printExeatSlip } from "./api.js?v=20261101-exeat-slip";
 import { Auth } from "./auth.js";
 
 document.addEventListener("DOMContentLoaded", async function () {
@@ -29,6 +29,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
             document.body.style.visibility = "visible";
             showMessage(error.message || "Unable to connect to the server.", "error");
+            window.dispatchEvent(new Event("app:initial-data-ready"));
             return;
         }
     }
@@ -36,9 +37,14 @@ document.addEventListener("DOMContentLoaded", async function () {
     setupLogin();
     setupPasswordRecovery();
     setupExeatForm(currentUser);
-    setupDashboard(currentUser);
-    setupRequestsPage(currentUser);
+    await Promise.all([
+        setupDashboard(currentUser),
+        setupRequestsPage(currentUser)
+    ]);
     setupLogout();
+    if (document.querySelector(".dashboard")) {
+        window.dispatchEvent(new Event("app:initial-data-ready"));
+    }
 
     const studentName = document.getElementById("studentName");
     const loginSucceeded = sessionStorage.getItem("loginSuccessMessage") === "true";
@@ -124,7 +130,11 @@ function setupLogin() {
             localStorage.setItem("token", token);
             localStorage.setItem("currentUser", JSON.stringify(user));
             sessionStorage.setItem("loginSuccessMessage", "true");
-            window.location.href = user.role === "admin"
+            const verificationNext = new URLSearchParams(window.location.search).get("next") || "";
+            const verificationMatch = /^verify-exeat\.html\?token=([a-f0-9]{64})$/i.exec(verificationNext);
+            window.location.href = user.role === "security" && verificationMatch
+                ? `verify-exeat.html?token=${encodeURIComponent(verificationMatch[1])}`
+                : user.role === "admin"
                 ? "admin.html"
                 : user.role === "portal"
                     ? "warden.html"
@@ -467,6 +477,7 @@ async function setupDashboard(currentUser) {
         const requests = (await request("/exeats")).map(normalizeExeat);
         updateDashboardCounts(requests);
         displayRecentRequests(requests);
+        displayStudentSlips(requests);
     } catch (error) {
         console.error("Could not load dashboard requests:", error);
         showMessage(error.message || "Unable to load your exeat requests.", "error");
@@ -494,8 +505,84 @@ function normalizeExeat(exeat) {
         reason: exeat.reason,
         status: statusLabels[exeat.status] || exeat.status,
         createdAt: exeat.createdAt,
-        adminComment: exeat.adminComment
+        adminComment: exeat.adminComment,
+        exeatNumber: exeat.exeatNumber,
+        slipStatus: exeat.slipStatus,
+        reviewedAt: exeat.reviewedAt
     };
+}
+
+function displayStudentSlips(requests) {
+    const body = document.getElementById("myExeatSlips");
+    if (!body) return;
+
+    body.replaceChildren();
+    const slips = requests.filter((item) => item.exeatNumber);
+    if (slips.length === 0) {
+        const row = body.insertRow();
+        const cell = row.insertCell();
+        cell.colSpan = 6;
+        cell.className = "empty";
+        cell.textContent = "Approved exeat permission slips will appear here.";
+        return;
+    }
+
+    slips.sort((left, right) => new Date(right.reviewedAt) - new Date(left.reviewedAt));
+    slips.forEach((slip) => {
+        const row = body.insertRow();
+        [
+            slip.exeatNumber,
+            formatDate(slip.reviewedAt),
+            formatDate(slip.departure),
+            formatDate(slip.returnDate)
+        ].forEach((value) => {
+            row.insertCell().textContent = value || "—";
+        });
+
+        const statusCell = row.insertCell();
+        const status = document.createElement("span");
+        const statusClass = slip.slipStatus === "valid"
+            ? "approved"
+            : ["expired", "revoked", "not-approved"].includes(slip.slipStatus)
+                ? "rejected"
+                : "pending";
+        status.className = `status ${statusClass}`;
+        status.textContent = (slip.slipStatus || "approved").replace(/-/g, " ");
+        statusCell.appendChild(status);
+
+        const actions = row.insertCell();
+        if (slip.status !== "Rejected" && slip.slipStatus !== "revoked" && slip.slipStatus !== "not-approved") {
+            const downloadButton = document.createElement("button");
+            downloadButton.className = "btn view";
+            downloadButton.type = "button";
+            downloadButton.textContent = "DOWNLOAD MY EXEAT SLIP";
+            downloadButton.addEventListener("click", async () => {
+                downloadButton.disabled = true;
+                try {
+                    await downloadExeatSlip(slip.id);
+                } catch (error) {
+                    showMessage(error.message || "Unable to download your permission slip.", "error");
+                } finally {
+                    downloadButton.disabled = false;
+                }
+            });
+
+            const printButton = document.createElement("button");
+            printButton.className = "btn approve";
+            printButton.type = "button";
+            printButton.textContent = "Print";
+            printButton.addEventListener("click", async () => {
+                try {
+                    await printExeatSlip(slip.id);
+                } catch (error) {
+                    showMessage(error.message || "Unable to print your permission slip.", "error");
+                }
+            });
+            actions.append(downloadButton, printButton);
+        } else {
+            actions.textContent = "Unavailable";
+        }
+    });
 }
 
 function updateDashboardCounts(requests) {

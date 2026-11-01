@@ -5,10 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>School Exeat System |•| Dashboard</title>
     <link rel="icon" type="image/png" href="eui%20logo.png">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=20261101-exeat-slip">
+    <script src="javascript/preloader.js" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css">
 </head>
 <body style="visibility: hidden">
+    <div class="page-preloader" id="page-preloader" role="status" aria-label="Loading School Exeat System">
+        <div class="page-preloader__mark">
+            <span class="page-preloader__spinner" aria-hidden="true"></span>
+            <img class="page-preloader__logo" src="eui logo.png" alt="Edo State University logo">
+        </div>
+        <span class="page-preloader__label">LOADING...</span>
+    </div>
     <div class="dashboard">
         <!-- Hamburger Icon -->
         <button class="menu-icon" id="menu-icon" aria-label="Open navigation menu" aria-expanded="false" aria-controls="sidebar">
@@ -78,8 +86,31 @@
                     <tbody id="recentRequests"></tbody>
                 </table>
             </div>
+
+            <section class="panel student-slips" aria-labelledby="studentSlipsTitle">
+                <div class="panel-header">
+                    <h2 id="studentSlipsTitle">MY EXEAT SLIPS</h2>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Exeat number</th>
+                                <th>Approval date</th>
+                                <th>Departure</th>
+                                <th>Expected return</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="myExeatSlips">
+                            <tr><td colspan="6" class="loading">Loading exeat slips...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
         </main>
     </div>
-    <script type="module" src="javascript/scripts.js?v=20261016-2"></script>
+    <script type="module" src="javascript/scripts.js?v=20261101-exeat-email-link"></script>
 </body>
 </html>

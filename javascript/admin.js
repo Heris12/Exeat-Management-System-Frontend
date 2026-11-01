@@ -1,4 +1,4 @@
-import { request } from "./api.js";
+import { request } from "./api.js?v=20261101-exeat-slip";
 import { Auth } from "./auth.js";
 
 // Admin dashboard script
@@ -24,7 +24,8 @@ async function verifyAdminAccess() {
         localStorage.setItem("currentUser", JSON.stringify(user));
         document.body.style.visibility = "visible";
         setupSidebar();
-        setupAdminDashboard(user);
+        await setupAdminDashboard(user);
+        window.dispatchEvent(new Event("app:initial-data-ready"));
     } catch (error) {
         console.error("Could not verify administrator access:", error);
         redirectToLogin();
@@ -260,7 +261,7 @@ async function setupAdminDashboard(currentUser) {
     function renderStudents() {
         studentsTable.replaceChildren();
         if (users.length === 0) {
-            appendEmptyRow(studentsTable, 6, "No registered students found.");
+            appendEmptyRow(studentsTable, 8, "No registered students found.");
             return;
         }
 
@@ -272,6 +273,8 @@ async function setupAdminDashboard(currentUser) {
                 user.fullName,
                 user.matricNumber,
                 user.department,
+                user.faculty,
+                user.level,
                 user.email,
                 user.hostel
             ].some(function (value) {
@@ -279,7 +282,7 @@ async function setupAdminDashboard(currentUser) {
             });
         });
         if (visibleStudents.length === 0) {
-            appendEmptyRow(studentsTable, 6, "No students match your search.");
+            appendEmptyRow(studentsTable, 8, "No students match your search.");
             return;
         }
 
@@ -288,6 +291,8 @@ async function setupAdminDashboard(currentUser) {
             appendTextCell(row, user.fullName);
             appendTextCell(row, user.matricNumber);
             appendTextCell(row, user.department);
+            appendTextCell(row, user.faculty || "Not specified");
+            appendTextCell(row, user.level || "Not specified");
             appendTextCell(row, user.email);
             appendTextCell(row, user.hostel || "Not assigned");
             appendTextCell(row, formatDate(user.createdAt));
@@ -472,8 +477,9 @@ async function setupAdminDashboard(currentUser) {
             return;
         }
 
+        let reviewResult;
         try {
-            await request("/admin/requests/" + encodeURIComponent(requestId), {
+            reviewResult = await request("/admin/requests/" + encodeURIComponent(requestId), {
                 method: "PATCH",
                 body: JSON.stringify({
                     status: reviewStatus.toLowerCase(),
@@ -509,7 +515,10 @@ async function setupAdminDashboard(currentUser) {
         });
         closeReview();
         render();
-        showToast("Request " + reviewStatus.toLowerCase() + ".", "success");
+        showToast(
+            reviewResult.message || "Request " + reviewStatus.toLowerCase() + ".",
+            reviewResult.permissionSlip && !reviewResult.permissionSlip.emailSent ? "error" : "success"
+        );
     }
 
     function showToast(message, type) {

@@ -47,7 +47,7 @@ export async function request(endpoint, options = {}) {
 
 export const requests = request;
 
-export async function downloadExeatSlip(exeatId) {
+async function getExeatSlipPdf(exeatId) {
     const headers = new Headers({ Accept: "application/pdf" });
     const token = localStorage.getItem("token");
     if (token) {
@@ -70,7 +70,11 @@ export async function downloadExeatSlip(exeatId) {
         throw new Error(message);
     }
 
-    const slip = await response.blob();
+    return response.blob();
+}
+
+export async function downloadExeatSlip(exeatId) {
+    const slip = await getExeatSlipPdf(exeatId);
     const url = URL.createObjectURL(slip);
     const link = document.createElement("a");
     link.href = url;
@@ -79,6 +83,31 @@ export async function downloadExeatSlip(exeatId) {
     link.click();
     link.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+export async function printExeatSlip(exeatId) {
+    const printWindow = window.open("about:blank", "_blank");
+    if (!printWindow) {
+        throw new Error("Allow pop-ups to print your permission slip.");
+    }
+
+    try {
+        const slip = await getExeatSlipPdf(exeatId);
+        const url = URL.createObjectURL(slip);
+        printWindow.location.href = url;
+        window.setTimeout(() => {
+            if (!printWindow.closed) {
+                printWindow.focus();
+                printWindow.print();
+                window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+            } else {
+                URL.revokeObjectURL(url);
+            }
+        }, 800);
+    } catch (error) {
+        printWindow.close();
+        throw error;
+    }
 }
 
 export function escapeHtml(value) {

@@ -2142,3 +2142,246 @@ tbody tr:hover td {
         animation-iteration-count: 1 !important;
     }
 }
+
+.page-preloader {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 20px;
+    padding: 24px;
+    background:
+        radial-gradient(circle at center, #ffffff 0, #f3f8f4 70%);
+    color: var(--brand-800);
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 450ms ease, visibility 0s linear 450ms;
+}
+
+.page-preloader--hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.page-preloader__mark {
+    position: relative;
+    display: grid;
+    width: clamp(112px, 28vw, 144px);
+    aspect-ratio: 1;
+    place-items: center;
+}
+
+.page-preloader__spinner {
+    position: absolute;
+    inset: 0;
+    border: 3px solid rgba(47, 118, 89, 0.16);
+    border-top-color: var(--brand-700);
+    border-right-color: var(--brand-600);
+    border-radius: 50%;
+    animation: preloader-spin 900ms linear infinite;
+}
+
+.page-preloader__logo {
+    display: block;
+    width: 62%;
+    max-height: 74%;
+    object-fit: contain;
+}
+
+.page-preloader__label {
+    color: var(--brand-800);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+}
+
+@keyframes preloader-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .page-preloader__spinner {
+        animation: none !important;
+    }
+
+    .page-preloader {
+        transition-duration: 150ms;
+    }
+}
+
+.student-slips {
+    margin-top: 24px;
+}
+
+.student-slips .panel-header {
+    margin-bottom: 12px;
+}
+
+.student-slips .panel-header h2 {
+    color: var(--brand-900);
+    font-size: 18px;
+    letter-spacing: 0.04em;
+}
+
+.student-slips .actions,
+.student-slips td:last-child {
+    white-space: nowrap;
+}
+
+.student-slips td .btn + .btn {
+    margin-left: 6px;
+}
+
+.student-slips .status {
+    text-transform: capitalize;
+}
+
+.pass-verification-page {
+    display: grid;
+    min-height: 100vh;
+    min-height: 100dvh;
+    place-items: center;
+    padding: 24px;
+    background:
+        radial-gradient(ellipse at 12% 12%, rgba(47, 118, 89, 0.12), transparent 34%),
+        radial-gradient(ellipse at 88% 88%, rgba(47, 118, 89, 0.1), transparent 36%),
+        var(--brand-50);
+}
+
+.pass-verification-card {
+    width: min(100%, 560px);
+    padding: clamp(24px, 6vw, 42px);
+    border: 1px solid #e1ebe4;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 22px 65px rgba(16, 43, 37, 0.12);
+}
+
+.pass-verification-logo {
+    display: block;
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 16px;
+    object-fit: contain;
+}
+
+.pass-verification-eyebrow,
+.pass-verification-card h1 {
+    color: var(--brand-900);
+    text-align: center;
+}
+
+.pass-verification-eyebrow {
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+}
+
+.pass-verification-card h1 {
+    font-size: clamp(24px, 5vw, 30px);
+}
+
+.pass-verification-intro {
+    margin: 10px 0 22px;
+    color: #64748b;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.pass-verification-result {
+    display: grid;
+    grid-template-columns: 12px minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+    padding: 14px;
+    border: 1px solid #dbe4ea;
+    border-radius: 12px;
+    background: #f8fafc;
+    color: #334155;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+.pass-verification-indicator {
+    width: 10px;
+    height: 10px;
+    margin-top: 4px;
+    border-radius: 50%;
+    background: #94a3b8;
+}
+
+.pass-verification-result--valid {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #166534;
+}
+
+.pass-verification-result--valid .pass-verification-indicator {
+    background: #16a34a;
+}
+
+.pass-verification-result--invalid {
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.pass-verification-result--invalid .pass-verification-indicator {
+    background: #dc2626;
+}
+
+.pass-verification-login {
+    grid-column: 2;
+    color: inherit;
+    text-decoration: underline;
+}
+
+.pass-verification-details {
+    display: grid;
+    grid-template-columns: minmax(130px, 0.7fr) minmax(0, 1.3fr);
+    gap: 12px;
+    margin-top: 20px;
+    padding: 18px;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.pass-verification-details dt {
+    color: #64748b;
+    font-size: 13px;
+}
+
+.pass-verification-details dd {
+    min-width: 0;
+    color: #183c32;
+    font-size: 14px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.pass-verification-back {
+    display: block;
+    margin-top: 22px;
+    color: var(--brand-700);
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+}
+
+.pass-verification-back:hover {
+    text-decoration: underline;
+}
+
+@media print {
+    .student-slips,
+    .pass-verification-back {
+        display: none;
+    }
+}

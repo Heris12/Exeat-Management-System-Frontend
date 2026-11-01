@@ -1,4 +1,4 @@
-import { request } from "./api.js";
+import { request } from "./api.js?v=20261101-exeat-slip";
 import { Auth } from "./auth.js";
 
 const halls = Array.from({ length: 8 }, (_, index) => `Hall ${index + 1}`);
@@ -35,6 +35,7 @@ async function initializeWardenPortal() {
         setupRequestFilter();
         await loadHostelData(warden.hostel);
         document.body.style.visibility = "visible";
+        window.dispatchEvent(new Event("app:initial-data-ready"));
     } catch (error) {
         console.error("Could not load the warden portal:", error);
         if (error.status === 401 || error.status === 403) {
@@ -43,6 +44,7 @@ async function initializeWardenPortal() {
         }
         showMessage(error.message || "Could not load hostel portal data.", "error");
         document.body.style.visibility = "visible";
+        window.dispatchEvent(new Event("app:initial-data-ready"));
     }
 }
 

@@ -1,4 +1,4 @@
-import { request } from "./api.js";
+import { request } from "./api.js?v=20261101-exeat-slip";
 import { Auth } from "./auth.js";
 
 let approvedExeats = [];
@@ -25,6 +25,7 @@ async function initializeSecurityPortal() {
         setupSidebar();
         await loadApprovedExeats();
         document.body.style.visibility = "visible";
+        window.dispatchEvent(new Event("app:initial-data-ready"));
     } catch (error) {
         console.error("Could not load the security portal:", error);
         if (error.status === 401 || error.status === 403) {
@@ -33,6 +34,7 @@ async function initializeSecurityPortal() {
         }
         showMessage(error.message || "Could not load approved exeat requests.", "error");
         document.body.style.visibility = "visible";
+        window.dispatchEvent(new Event("app:initial-data-ready"));
     }
 }
 

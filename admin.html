@@ -6,10 +6,18 @@
     <meta name="robots" content="noindex, nofollow, noarchive">
     <title>School Exeat System || Admin</title>
     <link rel="icon" type="image/png" href="eui%20logo.png">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=20261101-exeat-slip">
+    <script src="javascript/preloader.js" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css">
 </head>
 <body style="visibility: hidden">
+    <div class="page-preloader" id="page-preloader" role="status" aria-label="Loading School Exeat System">
+        <div class="page-preloader__mark">
+            <span class="page-preloader__spinner" aria-hidden="true"></span>
+            <img class="page-preloader__logo" src="eui logo.png" alt="Edo State University logo">
+        </div>
+        <span class="page-preloader__label">LOADING...</span>
+    </div>
     <div class="dashboard">
         <!-- Hamburger Icon -->
         <button class="menu-icon" id="menu-icon" aria-label="Open navigation menu" aria-expanded="false" aria-controls="sidebar">
@@ -197,7 +205,7 @@
                     <h2>Registered Students</h2>
                     <div class="controls admin-student-controls">
                         <input class="admin-search-input" type="search" id="studentSearchInput"
-                            placeholder="Search name, matric number, department, email or hostel"
+                            placeholder="Search name, matric number, department, faculty, level, email or hostel"
                             aria-label="Search registered students">
                     </div>
                 </div>
@@ -209,6 +217,8 @@
                                 <th>Full Name</th>
                                 <th>Matric Number</th>
                                 <th>Department</th>
+                                <th>Faculty</th>
+                                <th>Level</th>
                                 <th>Email</th>
                                 <th>Hostel Roster</th>
                                 <th>Registered</th>
@@ -216,7 +226,7 @@
                         </thead>
                         <tbody id="studentsTable">
                             <tr>
-                                <td colspan="6" class="loading">Loading students...</td>
+                                <td colspan="8" class="loading">Loading students...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -252,6 +262,6 @@
         </div>
     </div>
     <div class="toast" id="toast"></div>
-    <script type="module" src="javascript/admin.js?v=20261025-5"></script>
+    <script type="module" src="javascript/admin.js?v=20261101-exeat-slip"></script>
 </body>
 </html>

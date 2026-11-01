@@ -1,4 +1,4 @@
-import { request } from "./api.js";
+import { request } from "./api.js?v=20261101-exeat-slip";
 import { Auth } from "./auth.js";
 
 document.addEventListener("DOMContentLoaded", verifyAdminAccess);
@@ -22,6 +22,7 @@ async function verifyAdminAccess() {
         document.body.style.visibility = "visible";
         setupSidebar();
         setupCreateUserForm();
+        window.dispatchEvent(new Event("app:initial-data-ready"));
     } catch (error) {
         console.error("Could not verify administrator access:", error);
         redirectToLogin();
@@ -60,9 +61,11 @@ function setupCreateUserForm() {
     const hostel = document.getElementById("hostel");
     const matriculationNumber = document.getElementById("matriculationNumber");
     const department = document.getElementById("department");
+    const faculty = document.getElementById("faculty");
     const submitButton = document.getElementById("createUserButton");
     const message = document.getElementById("formMessage");
-    if (!studentFields || !hostelFields || !hostel || !matriculationNumber || !department || !submitButton || !message) {
+    if (!studentFields || !hostelFields || !hostel || !matriculationNumber || !department ||
+        !faculty || !submitButton || !message) {
         return;
     }
 
@@ -92,6 +95,8 @@ function setupCreateUserForm() {
             department.required = isStudent;
             department.disabled = !isStudent;
         }
+        faculty.required = isStudent;
+        faculty.disabled = !isStudent;
     }
 
     function syncRoleSelector() {
@@ -319,6 +324,9 @@ function setupCreateUserForm() {
         if (role.value === "student") {
             body.matriculationNumber = matriculationNumber.value.trim();
             body.department = department.value.trim();
+            body.faculty = faculty.value;
+            body.level = document.getElementById("level").value.trim();
+            body.phoneNumber = document.getElementById("phoneNumber").value.trim();
         }
 
         try {
