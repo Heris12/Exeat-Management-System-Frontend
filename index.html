@@ -5,9 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>School Exeat System || Login</title>
     <link rel="icon" type="image/png" href="eui%20logo.png">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=20261101-exeat-slip">
+    <script src="javascript/preloader.js" defer></script>
 </head>
 <body>
+    <div class="page-preloader" id="page-preloader" role="status" aria-label="Loading School Exeat System">
+        <div class="page-preloader__mark">
+            <span class="page-preloader__spinner" aria-hidden="true"></span>
+            <img class="page-preloader__logo" src="eui logo.png" alt="Edo State University logo">
+        </div>
+        <span class="page-preloader__label">LOADING...</span>
+    </div>
     <div class="login-container">
         <div class="login-card">
             <div class="logo">
@@ -17,7 +25,7 @@
             <p>Edo State University, Iyamho</p>
             <form id="loginForm">
                 <label for="identifier">Staff/Student ID:</label>
-                <input type="text" id="identifier" name="identifier" placeholder="Enter your email or student matric number" autocomplete="username" required>
+                <input  type="text" id="identifier" name="identifier" placeholder="Enter your email or student matric number" autocomplete="username" required>
                 <label for="password">Password:</label>
                 <input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="current-password" required>
                 <button type="submit" id="loginButton">Login</button>
@@ -26,6 +34,6 @@
         </div> 
     </div>
     
-    <script type="module" src="javascript/scripts.js?v=20261025-6"></script>
+    <script type="module" src="javascript/scripts.js?v=20261101-exeat-slip"></script>
 </body>
 </html>
